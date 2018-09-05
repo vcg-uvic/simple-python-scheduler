@@ -2,7 +2,7 @@
 
 This is simple python scheduler for a multi-user multi-GPU server. As of now,
 this scheduler works purely based on trust that all users will use this to run
-their scripts. This script is **NOT INTENDED* for complex environments that
+their scripts. This script is **NOT INTENDED** for complex environments that
 needs security.
 
 # Supported Commands
