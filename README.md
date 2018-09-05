@@ -41,9 +41,18 @@ Current job at GPU will be at `/var/sps/gpuX`
 
 Jobs will be named 
 
-`<user>-<type>-<time/pid>`
+`<time>-<user>-<type>-<pid>.job`
 
-Time will be from Python module `time.time()`
+and the corresponding shell environment for the batch job
+
+`<time>-<user>-<type>-<pid>.env`
+
+Time will be from Python module `time.time()`.  
+
+`pid` will be the pid of the
+job submitter.
+
+`type` will be either `salloc` or `sbatch`.
 
 
 Each job file will have inside a structure as the following:
@@ -56,6 +65,10 @@ start time (written by the scheduler)
 end time (written by the scheduler)
 ```
 
+# TODO
+
+* All variables and functions are now contained in a single file for each
+  instance. Structure this better.
 
 
 
