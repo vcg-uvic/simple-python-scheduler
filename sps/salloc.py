@@ -27,7 +27,7 @@ import subprocess
 import sys
 
 
-def add_interactive():
+def add_interactive(num_gpu, num_hour):
     """TODO: docstring
     """
 
@@ -67,10 +67,11 @@ def wait_for_gpus(num_gpu):
 def main(args):
 
     num_gpu = int(args[1])
+    num_hour = float(args[2])
 
     # Add job to addqueue
     print("Adding interactive job to queue.")
-    add_interactive()
+    add_interactive(num_gpu, num_hour)
 
     # Wait until assigned
     print("Waiting for an available GPU(s)...")
@@ -99,8 +100,8 @@ def main(args):
 
 if __name__ == "__main__":
 
-    if len(sys.argv) > 2:
-        print("Usage: salloc <num_gpu>")
+    if len(sys.argv) != 3:
+        print("Usage: salloc <num_gpu> <allocation time in hours>")
         exit(1)
 
     main(sys.argv)

@@ -5,6 +5,15 @@ this scheduler works purely based on trust that all users will use this to run
 their scripts. This script is **NOT INTENDED** for complex environments that
 needs security.
 
+# Milestones
+
+- [ ] Implement `salloc.py`
+- [ ] Implement `srunsched.py`, except for the `read_env`
+- [ ] Test `salloc.py`
+- [ ] Implement `sbatch.py`
+- [ ] Finish `srunsched.py`
+- [ ] Test `sbatch.py`
+
 # Supported Commands
 
 ## `salloc`
