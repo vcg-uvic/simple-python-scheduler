@@ -26,26 +26,15 @@ import sys
 
 def main(args):
 
-    print("Starting Scheduler")
-    while True:
+    # Check current running jobs
+    print("Checking current running jobs.")
 
-        # Read Queue Addition Pool (Directory)
-        print("Reading queue addition pool")
+    # Check current queue
+    print("Read current queue.")
 
-        # Add job to current Queue file
-        print("Adding job to current queue")
+    # Format nicely
+    print("Display parsed results.")
 
-        # Check liftime of processes, as well as validity of any interactive job
-        print("Checking if any process should be killed")
-
-        # Check if there's a free GPU
-        print("Checking GPU availability")
-
-        # Assign job to GPU by moving the job to the GPU
-        print("Assigning and blocking GPU")
-
-
-        
 
     exit(0)
 
