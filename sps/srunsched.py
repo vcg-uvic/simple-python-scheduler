@@ -54,7 +54,7 @@ def collect_user_queue():
     new_jobs = []
     for dir_userqueue in list_sub_dir(dir_addqueue):
         for job in os.listdir(dir_userqueue):
-            job_fullpath = os.join(dir_userqueue, job)
+            job_fullpath = os.path.join(dir_userqueue, job)
             # Ignore the ones that are not files
             if not os.isfile(job_fullpath):
                 continue
