@@ -308,7 +308,7 @@ def read_job(job_fullpath):
 
     # First parse the job name
     job = job_fullpath.split("/")[-1]
-    job_spec = parse("{time}-{user}-{type}-{pid}.job", job)
+    job_spec = parse("{time}-{user}-{type}-{pid}.job", job).named
 
     # Parse the contents of the job
     with lock:
