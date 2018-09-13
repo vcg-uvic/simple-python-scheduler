@@ -295,7 +295,8 @@ def assign_job(job_fullpath, free_gpus):
 
     job_spec = read_job(job_fullpath)
 
-    # TODO: Randomly permute GPU
+    # Randomly permute GPU
+    free_gpus = np.random.permutation(free_gpus)
 
     # Check job requirement, and if it fits, copy job to the gpus
     num_gpu = int(job_spec["num_gpu"])
