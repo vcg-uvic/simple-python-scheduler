@@ -289,8 +289,8 @@ def assign_job(job_fullpath, free_gpus):
     """
 
     if job_fullpath is None:
-        print("No job to assign")
-        return
+        print("  -- No job to assign")
+        return None, None
 
     job_spec = read_job(job_fullpath)
 
