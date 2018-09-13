@@ -179,7 +179,7 @@ def check_gpu_jobs():
     """
 
     dir_gpus = [os.path.join(dir_gpu, d) for d in os.listdir(dir_gpu)
-                if os.path.isdir(d)]
+                if os.path.isdir(os.path.join(dir_gpu, d))]
 
     # For all gpu directories
     for dir_cur_gpu in dir_gpus:
@@ -249,7 +249,9 @@ def get_free_gpus():
 
     # For all gpu directories
     dir_gpus = [os.path.join(dir_gpu, d) for d in os.listdir(dir_gpu)
-                if os.path.isdir(d)]
+                if os.path.isdir(os.path.join(dir_gpu, d))]
+    print("Total of {} gpus found in {}. Checking".format(
+        len(dir_gpus), dir_gpu))
     # Look at assigned jobs
     for dir_cur_gpu in dir_gpus:
         assigned = False
