@@ -146,7 +146,7 @@ def check_job_valid(job_fullpath):
 
     # check if job is valid by simply reading it
     try:
-        job_specs = read_job(job_fullpath)
+        job_spec = read_job(job_fullpath)
         env = read_env(job_fullpath)
     except:
         valid = False
@@ -160,10 +160,10 @@ def check_job_finished(job_fullpath):
     """
 
     # read job contents
-    job_specs = read_job(job_fullpath)
+    job_spec = read_job(job_fullpath)
 
     # check time limit
-    if float(job_specs["end"]) < time.time():
+    if float(job_spec["end"]) < time.time():
         return True
 
     # check if pid is alive
