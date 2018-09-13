@@ -72,6 +72,7 @@ def collect_user_queue():
                 # TODO: throw error or delete job silently
                 print("{} is not a proper job!".format(
                     job_fullpath))
+                remove_job(job_fullpath)
 
     return new_jobs
 
