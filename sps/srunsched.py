@@ -309,9 +309,18 @@ def read_job(job_fullpath):
     job = job_fullpath.split("/")[-1]
     job_spec = parse("{time}-{user}-{type}-{pid}.job", job)
 
-    # TODO: Parse the contents of the job
+    # Parse the contents of the job
     with lock:
-        pass
+        with open(job_fullpath, "r") as ifp:
+            # TODO: Limit maximum
+            contents = ifp.readlines()
+            assert len(contents) == 3 or len(contents) == 5
+            job_spec["cmd"] = contents[0].rstrip("\n")
+            job_spec["life"] = contents[1].rstrip("\n")
+            job_spec["num_gpu"] = contents[2].rstrip("\n")
+            if len(contents) > 3:
+                job_spec["start"] = contents[3].rstrip("\n")
+                job_spec["end"] = contents[4].rstrip("\n")
 
     return job_spec
 
@@ -320,10 +329,14 @@ def write_job(job_fullpath, job_spec):
     """ TODO: Docstring
     """
 
-    # TODO: Write the contents to a job
+    # Write the contents to a job
     with lock:
-        pass
-
+        with open(job_fullpath, "w") as ofp:
+            ofp.write(job_spec["cmd"] + "\n")
+            ofp.write(job_spec["life"] + "\n")
+            ofp.write(job_spec["num_gpu"] + "\n")
+            ofp.write(job_spec["start"] + "\n")
+            ofp.write(job_spec["end"] + "\n")
 
 def remove_job(job_fullpath):
     """ TODO: writeme
@@ -359,6 +372,10 @@ def write_env(job_fullpath, env):
 
 
 def run_job(job_fullpath, assigned_gpus):
+
+    if job_fullpath is None:
+        print("No job to run")
+        return
 
     # Read job
     job_spec = read_job(job_fullpath)
