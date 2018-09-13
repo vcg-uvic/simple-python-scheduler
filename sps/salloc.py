@@ -159,6 +159,7 @@ def wait_for_gpus(num_gpu):
     while True:
 
         gpu_ids = get_assigned_gpus()
+        print("Assigne gpus = {}".format(gpu_ids))
         if len(gpu_ids) == num_gpu:
             break
 
