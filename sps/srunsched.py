@@ -266,7 +266,7 @@ def get_free_gpus():
             if not job_fullpath.endswith(".job"):
                 continue
             # Mark assigned
-            print("{} is not free, {} is there".format(
+            print("  -- {} is not free, {} is there".format(
                 dir_cur_gpu, job))
             assigned = True
         if not assigned:
