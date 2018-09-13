@@ -105,12 +105,12 @@ def copy_job(job_fullpath, dst):
 
     # write job to new file
     job = job_fullpath.split("/")[-1]
-    write_job(os.path.join(dir_queue, job), job_spec)
+    write_job(os.path.join(dst, job), job_spec)
 
     # copy env as well
     shutil.copy(
         job_fullpath.replace(".job", ".env"),
-        os.path.join(dir_queue, job.replace(".job", ".env")),
+        os.path.join(dst, job.replace(".job", ".env")),
     )
 
 
