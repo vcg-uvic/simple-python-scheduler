@@ -129,9 +129,9 @@ def get_assigned_gpus():
                 continue
             # Parse and check job info
             parseres = parse("{time}-{user}-{type}-{pid}.job", job)
-            if parseres["user"] != uname:
+            if str(parseres["user"]) != uname:
                 continue
-            if parseres["pid"] != pid:
+            if str(parseres["pid"]) != pid:
                 continue
             # Add to assigned gpu
             assigned_gpu += [int(dir_cur_gpu.split("/")[-1])]
