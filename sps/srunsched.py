@@ -259,6 +259,8 @@ def get_free_gpus():
             if not os.path.isfile(job_fullpath):
                 continue
             # Mark assigned
+            print("{} is not free, {} is there".format(
+                dir_cur_gpu, job))
             assigned = True
         if not assigned:
             free_gpu += [int(dir_cur_gpu.split["/"][-1])]
