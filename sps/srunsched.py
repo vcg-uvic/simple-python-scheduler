@@ -277,7 +277,7 @@ def assign_job(job_fullpath, free_gpus):
     job_spec = read_job(job_fullpath)
 
     # Check job requirement, and if it fits, copy job to the gpus
-    num_gpu = job_spec["num_gpu"]
+    num_gpu = int(job_spec["num_gpu"])
     if num_gpu <= len(free_gpus):
         # First copy for all gpus
         for gpu in free_gpus[:num_gpu]:
@@ -426,6 +426,7 @@ def main(args):
         # Select the oldest asalloc job, if it does not
         print("Grabbing oldest job")
         job_fullpath = get_job()
+        print("Grabbed {}".format(job_fullpath))
 
         # Check if there's a free GPU
         print("Checking GPU availability")
