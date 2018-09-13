@@ -27,6 +27,7 @@ import pwd
 import shutil
 import signal
 import sys
+import time
 
 import numpy as np
 from flufl.lock import Lock
