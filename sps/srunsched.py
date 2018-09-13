@@ -92,7 +92,7 @@ def copy_job(job_fullpath, dst):
 
     """
 
-    print("Copying {} to {}".format(
+    print("  -- Copying {} to {}".format(
         job_fullpath, dst))
 
     # read specs of the job
@@ -252,7 +252,7 @@ def get_free_gpus():
     # For all gpu directories
     dir_gpus = [os.path.join(dir_gpu, d) for d in os.listdir(dir_gpu)
                 if os.path.isdir(os.path.join(dir_gpu, d))]
-    print("Total of {} gpus found in {}. Checking".format(
+    print("  -- Total of {} gpus found in {}. Checking".format(
         len(dir_gpus), dir_gpu))
     # Look at assigned jobs
     for dir_cur_gpu in dir_gpus:
@@ -413,7 +413,7 @@ def run_job(job_fullpath, assigned_gpus):
 
     # Check job type
     if job_spec["type"] == "salloc":
-        print("This is an alloc job, assigned, but not running")
+        print("  -- This is an alloc job, assigned, but not running")
         return
 
     # Read the environment
@@ -423,7 +423,7 @@ def run_job(job_fullpath, assigned_gpus):
     gpu_str = ",".join(assigned_gpus)
     sub_env["CUDA_VISIBLE_DEVICES"] = gpu_str
 
-    print("Running job with CUDA_VISIBLE_DEVICES={}".format(gpu_str))
+    print("  -- Running job with CUDA_VISIBLE_DEVICES={}".format(gpu_str))
     subprocess.Popen(
         job_spec["cmd"],
         preexec_fn=demote_to(job_spec["user"]),
@@ -463,6 +463,7 @@ def main(args):
         job_fullpath, assigned_gpus = assign_job(job_fullpath, free_gpus)
 
         # Run job as user
+        print("* Running job")
         run_job(job_fullpath, assigned_gpus)
 
         # Re-schedule after 30 seconds
