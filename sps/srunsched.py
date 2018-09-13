@@ -147,6 +147,7 @@ def check_job_valid(job_fullpath):
     # check if job is valid by simply reading it
     try:
         job_specs = read_job(job_fullpath)
+        env = read_env(job_fullpath)
     except:
         valid = False
 
