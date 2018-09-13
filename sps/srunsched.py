@@ -263,7 +263,7 @@ def get_free_gpus():
                 dir_cur_gpu, job))
             assigned = True
         if not assigned:
-            free_gpu += [int(dir_cur_gpu.split["/"][-1])]
+            free_gpus += [int(dir_cur_gpu.split["/"][-1])]
 
     return free_gpus
 
