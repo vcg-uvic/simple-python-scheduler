@@ -45,6 +45,8 @@ lock = Lock(os.path.join(dir_sps, "locks/lock"))
 
 parser = argparse.ArgumentParser()
 
+arg_lists = []
+
 def add_argument_group(name):
     arg = parser.add_argument_group(name)
     arg_lists.append(arg)
