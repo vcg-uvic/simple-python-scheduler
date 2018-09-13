@@ -205,7 +205,7 @@ def get_job():
     job_fullpath = None
 
     # Get all jobs
-    jobs = [j for j in os.list_dir(dir_queue) if
+    jobs = [j for j in os.listdir(dir_queue) if
             j.endswith(".job")]
 
     # Sort job according to time
