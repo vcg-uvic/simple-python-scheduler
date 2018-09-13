@@ -127,8 +127,10 @@ def get_assigned_gpus():
             # Pass if not a regular file
             if not os.path.isfile(job_fullpath):
                 continue
+            # Pass if not a job
+            if not job_fullpath.endswith(".job"):
+                continue
             # Parse and check job info
-            print("parsing {}".format(job))
             parseres = parse("{time}-{user}-{type}-{pid}.job", job)
             if parseres["user"] != uname:
                 continue
