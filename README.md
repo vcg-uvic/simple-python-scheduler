@@ -44,7 +44,7 @@ Queue will be located at `/var/sps/queue`
 
 Add queue will be located at `/var/sps/addqueue/<user>`
 
-Current job at GPU will be at `/var/sps/gpuX`
+Current job at GPU will be at `/var/sps/gpu/X`
 
 # Job file
 
@@ -74,10 +74,17 @@ start time (written by the scheduler)
 end time (written by the scheduler)
 ```
 
+Which will be parsed respectively with keywords "cmd", "life", "num_gpu",
+"start", "end".
+
+
 # TODO
 
 * All variables and functions are now contained in a single file for each
   instance. Structure this better.
 
+# Known Vulnerabilities
+
+- [ ] The lock file can arbitrarilly be deleted. 
 
 

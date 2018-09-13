@@ -23,14 +23,19 @@
 
 import os
 import pwd
+import shutil
+import signal
 import sys
 
+from flufl.lock import Lock
 from parse import parse
 
 dir_sps = "/var/sps"
+dir_gpu = os.path.join(dir_sps, "gpu")
 dir_addqueue = os.path.join(dir_sps, "addqueue")
 dir_queue = os.path.join(dir_sps, "queue")
 
+lock = Lock(os.path.join(dir_sps, "locks/lock"))
 
 def list_sub_dir(d):
     return [os.path.join(d, o) for o in os.listdir(d)
@@ -67,26 +72,40 @@ def collect_user_queue():
 
 
 def copy_job(job_fullpath, dst):
-    """ TODO: Docstring
+    """TODO: Docstring
+    
+    Whenever copying, the scheduler will check time and update start and end
+    times.
+
+    Parameters
+    ----------
+    job_fullpath: string
+        Full path to the job file 
+    dst: string
+        Destination directory. File name will automatically be created.
+
     """
 
     print("Copying {} to {}".format(
         job_fullpath, dst))
 
-    # TODO: read the first three lines
-    # TODO: create a new file with proper name at `dir_queue`
+    # read specs of the job
+    job_spec = read_job(job_fullpath)
+
+    # set specs, i.e. start and end time
+    cur_time = time.time()
+    job_spec["start"] = cur_time
+    job_spec["end"] = cur_time + 60 * 60 * job_spec["life"]
+
+    # write job to new file
     job = job_fullpath.split("/")[-1]
-    # TODO: write to new file
+    write_job(os.path.join(dir_queue, job), job_spec)
 
-    # TODO: Make sure to copy env as well
-
-def remove_job(job_fullpath):
-    """ TODO: writeme
-    """
-
-    os.remove(job_fullpath)
-    os.remove(job_fullpath.replace(".job", ".env"))
-
+    # copy env as well
+    shutil.copy(
+        job_fullpath.replace(".job", ".env"), 
+        os.path.join(dir_queue, job.replace(".job", ".env")),
+    )
 
 def move_jobs_to_queue(new_jobs):
     """ TODO: Docstring
@@ -102,20 +121,15 @@ def kill_job(job_fullpath):
     """ TODO: Docstring
     """
 
-    # TODO: kill the job
+    # kill the job
+    job = job_fullpath.split("/")[-1]
+    parseres = parse("{time}-{user}-{type}-{pid}.job", job)
+    # os.kill(parseres["pid"], signal.SIGTERM)
+    # Kill 9 for now. No graceful exit. Don't trust the user.
+    os.kill(parseres["pid"], signal.SIGKILL) 
 
-    # TODO: delete job file
-
-
-def read_job(job_fullpath):
-    """ TODO: Docstring
-    """
-
-    job_spec = {}
-
-    # TODO: Parse the contents of the job
-
-    return job_spec
+    # delete job file
+    remove_job(job_fullpath)
 
 
 def check_job_valid(job_fullpath):
@@ -146,13 +160,13 @@ def check_gpu_jobs():
     """ TODO: Docstring
     """
 
-    dir_gpus = [os.path.join(dir_sps, d) for d in os.listdir(dir_sps)
-                if d.startswith("gpu")]
+    dir_gpus = [os.path.join(dir_gpu, d) for d in os.listdir(dir_gpu)
+                if os.path.isdir(d)]
 
     # For all gpu directories
-    for dir_gpu in dir_gpus:
-        for job in os.listdir(dir_gpu):
-            job_fullpath = os.path.join(dir_gpu, job)
+    for dir_cur_gpu in dir_gpus:
+        for job in os.listdir(dir_cur_gpu):
+            job_fullpath = os.path.join(dir_cur_gpu, job)
             # Pass if not a regular file
             if not os.path.isfile(job_fullpath):
                 continue
@@ -218,14 +232,55 @@ def demote_to(user):
     return setids
 
 
+def write_job(job_fullpath, job_spec):
+    """ TODO: Docstring
+    """
+
+    # TODO: Write the contents to a job
+    with lock:
+        pass
+
+
+def read_job(job_fullpath):
+    """ TODO: Docstring
+    """
+
+    job_spec = {}
+
+    # TODO: Parse the contents of the job
+    with lock:
+        pass
+
+    return job_spec
+
+def remove_job(job_fullpath):
+    """ TODO: writeme
+    """
+
+    with lock:
+        os.remove(job_fullpath)
+        os.remove(job_fullpath.replace(".job", ".env"))
+
+
 def read_env(job_fullpath):
     """TODO: write"""
     env = {}
 
     env_fullpath = job_fullpath.replace(".job", ".env")
     # TODO: read env from env_fullpath
+    with lock:
+        pass
 
     return env
+
+
+def write_env(job_fullpath, env):
+    """TODO: write"""
+
+    env_fullpath = job_fullpath.replace(".job", ".env")
+    # TODO: read env from env_fullpath
+    with lock:
+        pass
 
 
 def run_job(job_fullpath, assigned_gpus):

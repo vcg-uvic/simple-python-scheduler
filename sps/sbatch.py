@@ -24,6 +24,10 @@
 import os
 import sys
 
+from flufl.lock import Lock
+
+lock = Lock(os.path.join(dir_sps, "locks/lock"))
+
 def main(args):
 
     # Get Username

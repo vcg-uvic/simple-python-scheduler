@@ -22,30 +22,97 @@
 
 # Code:
 
+import getpass
 import os
 import subprocess
 import sys
+import time
 
+from flufl.lock import Lock
+
+
+dir_sps = "/var/sps"
+dir_gpu = os.path.join(dir_sps, "gpu")
+dir_addqueue = os.path.join(dir_sps, "addqueue")
+dir_queue = os.path.join(dir_sps, "queue")
+
+lock = Lock(os.path.join(dir_sps, "locks/lock"))
 
 def add_interactive(num_gpu, num_hour):
     """TODO: docstring
     """
 
-    # TODO: Get Username
-    # TODO: Get PID
-    # TODO: Add to queue as interactive
+    # Get Username
+    uname = getpass.getuser()
+    
+    # Get PID
+    pid = os.getpid()
+
+    # Check user queue directory
+    dir_userqueue = os.path.join(dir_addqueue, uname)
+    if not os.path.exists(dir_userqueue):
+        raise RuntimeError("{} is not setup to use GPUs! Contact admin!")
+
+    # Add an interactive job
+    job_name = "{}-{}-{}-{}.job".format(
+        time.time(), uname, "salloc", pid
+    )
+    job_file = os.path.join(dir_userqueue, job_name)
+    with lock:                  # Lock to prevent race
+        with open(job_file, "w") as ofp:
+            ofp.write("{}\n{}\n{}\n".format(
+                "",
+                num_hour * 60 * 60, # In seconds
+                num_gpu,
+            ))
+    
 
 def get_assigned_gpus():
+    """ TODO: Docstring
+    
+    Returns
+    -------
+    assigned_gpus: list of int
+        Assigned GPU numbers in ints
+    """
 
     assigned_gpus = []
 
-    # TODO: Find assigned gpus
+    # Get Username
+    uname = getpass.getuser()
+    
+    # Get PID
+    pid = os.getpid()
+
+    # For all gpu directories
+    dir_gpus = [os.path.join(dir_gpu, d) for d in os.listdir(dir_gpu)
+                if os.path.isdir(d)]
+    # Look at assigned jobs
+    for dir_cur_gpu in dir_gpus:
+        for job in os.listdir(dir_cur_gpu):
+            job_fullpath = os.path.join(dir_cur_gpu, job)
+            # Pass if not a regular file
+            if not os.path.isfile(job_fullpath):
+                continue
+            # Parse and check job info
+            parseres = parse("{time}-{user}-{type}-{pid}.job", job)
+            if parseres["user"] != uname:
+                continue
+            if parseres["pid"] != pid:
+                continue
+            # Add to assigned gpu
+            assigned_gpu += [int(dir_cur_gpu.split["/"][-1])]
 
     return assigned_gpus
     
 
 def wait_for_gpus(num_gpu):
     """TODO: docstring
+    
+    Returns
+    -------
+
+    gpu_str: string for the environment variable
     """
     gpu_ids = []
 
@@ -60,7 +127,7 @@ def wait_for_gpus(num_gpu):
         time.sleep(10)
 
     # Once job is allocated, return the GPU id in string
-    gpu_str = ",".join(gpu_ids)
+    gpu_str = ",".join([str(g) for g in gpu_ids])
 
     return gpu_str
 
