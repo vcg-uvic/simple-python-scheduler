@@ -118,7 +118,7 @@ def get_assigned_gpus():
 
     # For all gpu directories
     dir_gpus = [os.path.join(dir_gpu, d) for d in os.listdir(dir_gpu)
-                if os.path.isdir(d)]
+                if os.path.isdir(os.path.join(dir_gpu, d))]
     # Look at assigned jobs
     for dir_cur_gpu in dir_gpus:
         for job in os.listdir(dir_cur_gpu):
