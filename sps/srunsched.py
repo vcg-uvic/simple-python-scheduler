@@ -21,14 +21,18 @@
 
 # Code:
 
+import json
 import os
 import pwd
 import shutil
 import signal
 import sys
 
+import numpy as np
 from flufl.lock import Lock
 from parse import parse
+
+import psutil
 
 dir_sps = "/var/sps"
 dir_gpu = os.path.join(dir_sps, "gpu")
@@ -36,6 +40,7 @@ dir_addqueue = os.path.join(dir_sps, "addqueue")
 dir_queue = os.path.join(dir_sps, "queue")
 
 lock = Lock(os.path.join(dir_sps, "locks/lock"))
+
 
 def list_sub_dir(d):
     return [os.path.join(d, o) for o in os.listdir(d)
@@ -57,7 +62,6 @@ def collect_user_queue():
                 continue
             try:
                 # Try parsing job as dictionary
-                parseres = parse("{time}-{user}-{type}-{pid}.job", job)
                 if check_job_valid(job_fullpath):
                     # Add parsed job
                     new_jobs += [job_fullpath]
@@ -73,7 +77,7 @@ def collect_user_queue():
 
 def copy_job(job_fullpath, dst):
     """TODO: Docstring
-    
+
     Whenever copying, the scheduler will check time and update start and end
     times.
 
@@ -103,9 +107,10 @@ def copy_job(job_fullpath, dst):
 
     # copy env as well
     shutil.copy(
-        job_fullpath.replace(".job", ".env"), 
+        job_fullpath.replace(".job", ".env"),
         os.path.join(dir_queue, job.replace(".job", ".env")),
     )
+
 
 def move_jobs_to_queue(new_jobs):
     """ TODO: Docstring
@@ -122,11 +127,11 @@ def kill_job(job_fullpath):
     """
 
     # kill the job
-    job = job_fullpath.split("/")[-1]
-    parseres = parse("{time}-{user}-{type}-{pid}.job", job)
-    # os.kill(parseres["pid"], signal.SIGTERM)
+    job_spec = read_job(job_fullpath)
     # Kill 9 for now. No graceful exit. Don't trust the user.
-    os.kill(parseres["pid"], signal.SIGKILL) 
+    if psutil.pid_exists(job_spec["pid"]):
+        os.kill(job_spec["pid"], signal.SIGKILL)
+        # os.kill(job_spec["pid"], signal.SIGTERM)
 
     # delete job file
     remove_job(job_fullpath)
@@ -137,23 +142,33 @@ def check_job_valid(job_fullpath):
     """
     valid = True
 
-    # TODO: check if job is valid
+    # check if job is valid by simply reading it
+    try:
+        job_specs = read_job(job_fullpath)
+    except:
+        valid = False
 
     return valid
 
 
 def check_job_finished(job_fullpath):
     """ TODO: Docstring
+
     """
-    finished = False
 
-    # TODO: read job contents
+    # read job contents
+    job_specs = read_job(job_fullpath)
 
-    # TODO: check time limit
+    # check time limit
+    if job_specs["end"] < time.time():
+        return True
 
-    # TODO: if job type is salloc, also check if pid is alive
+    # check if pid is alive
+    if not psutil.pid_exists(job_spec["pid"]):
+        return True
 
-    return finished
+    # otherwise return false
+    return False
 
 
 def check_gpu_jobs():
@@ -170,30 +185,80 @@ def check_gpu_jobs():
             # Pass if not a regular file
             if not os.path.isfile(job_fullpath):
                 continue
+            # Kill finished jobs
             if check_job_finished(job_fullpath):
                 kill_job(job_fullpath)
 
 
 def get_job():
-    """ TODO: docstring
+    """TODO: docstring
+
+    Returns
+    -------
+    job_fullpath: str
+
+        Returns the full path to the job to run. Returns None if there's no job
+        to run.
+
     """
 
     job_fullpath = None
 
-    # TODO: Try to get the oldest alloc job
+    # Get all jobs
+    jobs = [j for j in os.list_dir(dir_queue) if
+            j.endswith(".job")]
 
-    # TODO: Try to get the oldest batch job
+    # Sort job according to time
+    jobs = np.sort(jobs)
+
+    # Try to get the oldest alloc job
+    for job in jobs:
+        job_spec = parse("{time}-{user}-{type}-{pid}.job", job)
+        if job_spec["type"] == "salloc":
+            job_fullpath = os.path.join(dir_queue, job)
+            return job_fullpath
+
+    # Try to get the oldest batch job
+    for job in jobs:
+        job_spec = parse("{time}-{user}-{type}-{pid}.job", job)
+        if job_spec["type"] == "sbatch":
+            job_fullpath = os.path.join(dir_queue, job)
+            return job_fullpath
 
     return job_fullpath
 
 
 def get_free_gpus():
     """ TODO: docstring
+
+
+    Returns
+    -------
+
+    free_gpus: list of int
+
+        Returns the list of free GPUs
     """
 
     free_gpus = []              # list of integers
 
-    # TODO: Find the list of free GPUS.
+    # Find the list of free GPUS.
+
+    # For all gpu directories
+    dir_gpus = [os.path.join(dir_gpu, d) for d in os.listdir(dir_gpu)
+                if os.path.isdir(d)]
+    # Look at assigned jobs
+    for dir_cur_gpu in dir_gpus:
+        assigned = False
+        for job in os.listdir(dir_cur_gpu):
+            job_fullpath = os.path.join(dir_cur_gpu, job)
+            # Pass if not a regular file
+            if not os.path.isfile(job_fullpath):
+                continue
+            # Mark assigned
+            assigned = True
+        if not assigned:
+            free_gpu += [int(dir_cur_gpu.split["/"][-1])]
 
     return free_gpus
 
@@ -201,6 +266,10 @@ def get_free_gpus():
 def assign_job(job_fullpath, free_gpus):
     """ TODO: docstring
     """
+
+    if job_fullpath is None:
+        print("No job to assign")
+        return
 
     job_spec = read_job(job_fullpath)
 
@@ -232,6 +301,21 @@ def demote_to(user):
     return setids
 
 
+def read_job(job_fullpath):
+    """ TODO: Docstring
+    """
+
+    # First parse the job name
+    job = job_fullpath.split("/")[-1]
+    job_spec = parse("{time}-{user}-{type}-{pid}.job", job)
+
+    # TODO: Parse the contents of the job
+    with lock:
+        pass
+
+    return job_spec
+
+
 def write_job(job_fullpath, job_spec):
     """ TODO: Docstring
     """
@@ -240,18 +324,6 @@ def write_job(job_fullpath, job_spec):
     with lock:
         pass
 
-
-def read_job(job_fullpath):
-    """ TODO: Docstring
-    """
-
-    job_spec = {}
-
-    # TODO: Parse the contents of the job
-    with lock:
-        pass
-
-    return job_spec
 
 def remove_job(job_fullpath):
     """ TODO: writeme
@@ -264,12 +336,13 @@ def remove_job(job_fullpath):
 
 def read_env(job_fullpath):
     """TODO: write"""
-    env = {}
 
     env_fullpath = job_fullpath.replace(".job", ".env")
-    # TODO: read env from env_fullpath
+
+    # read env from env_fullpath
     with lock:
-        pass
+        with open(env_fullpath, "r") as ifp:
+            env = json.load(ifp)
 
     return env
 
@@ -278,9 +351,11 @@ def write_env(job_fullpath, env):
     """TODO: write"""
 
     env_fullpath = job_fullpath.replace(".job", ".env")
-    # TODO: read env from env_fullpath
+
+    # write env to env_fullpath
     with lock:
-        pass
+        with open(env_fullpath, "r") as ifp:
+            env = json.dump(env, ifp)
 
 
 def run_job(job_fullpath, assigned_gpus):
@@ -290,7 +365,7 @@ def run_job(job_fullpath, assigned_gpus):
 
     # Check job type
     if job_spec["type"] == "salloc":
-        print("This is an alloc job, not running")
+        print("This is an alloc job, assigned, but not running")
         return
 
     # Read the environment
@@ -323,7 +398,7 @@ def main(args):
         move_jobs_to_queue(new_jobs)
 
         # Check liftime of processes, as well as validity of any interactive job
-        print("Checking if any process should be killed")
+        print("Checking if any process should be killed and killing if finished")
         check_gpu_jobs()
 
         # Select the oldest asalloc job, if it does not

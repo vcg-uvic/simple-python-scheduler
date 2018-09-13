@@ -5,6 +5,13 @@ this scheduler works purely based on trust that all users will use this to run
 their scripts. This script is **NOT INTENDED** for complex environments that
 needs security.
 
+# Dependancies
+
+```
+flufl.lock
+psutil
+```
+
 # Milestones
 
 - [ ] Implement `salloc.py`
