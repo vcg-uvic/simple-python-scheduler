@@ -268,6 +268,15 @@ def get_free_gpus():
 
 def assign_job(job_fullpath, free_gpus):
     """ TODO: docstring
+    
+    Returns
+    -------
+
+    job_fullpath: str
+        Full path to the new job script located under gpu
+    
+    assigned_gpus: list of int
+        List of assigned GPUs.
     """
 
     if job_fullpath is None:
@@ -276,18 +285,27 @@ def assign_job(job_fullpath, free_gpus):
 
     job_spec = read_job(job_fullpath)
 
+    # TODO: Randomly permute GPU
+
     # Check job requirement, and if it fits, copy job to the gpus
     num_gpu = int(job_spec["num_gpu"])
     if num_gpu <= len(free_gpus):
         # First copy for all gpus
         for gpu in free_gpus[:num_gpu]:
-            copy_job(job_fullpath, os.path.join(dir_sps, "gpu{}".format(gpu)))
+            new_dir = os.path.join(dir_sps, "gpu/{}".format(gpu)) 
+            copy_job(job_fullpath, new_dir)
         # Now delete from queue
         remove_job(job_fullpath)
+        # Return the new job script in certain gpu to run
+        job_fullpath = os.path.join(new_dir, job_fullpath.split("/")[-1])
+        assigned_gpus = free_gpus[:num_gpu]
     else:
         print("Job spec requires {} gpus, we have only {} free".format(
             num_gpu, len(free_gpus)))
+        job_fullpath = None
+        assigned_gpus = None
 
+    return job_fullpath, assigned_gpus
 
 def demote_to(user):
     """ TODO: writeme
