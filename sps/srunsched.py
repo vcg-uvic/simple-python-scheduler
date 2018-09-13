@@ -132,8 +132,8 @@ def kill_job(job_fullpath):
     job_spec = read_job(job_fullpath)
     # Kill 9 for now. No graceful exit. Don't trust the user.
     if psutil.pid_exists(int(job_spec["pid"])):
-        os.kill(job_spec["pid"], signal.SIGKILL)
-        # os.kill(job_spec["pid"], signal.SIGTERM)
+        os.kill(int(job_spec["pid"]), signal.SIGKILL)
+        # os.kill(int(job_spec["pid"]), signal.SIGTERM)
 
     # delete job file
     remove_job(job_fullpath)

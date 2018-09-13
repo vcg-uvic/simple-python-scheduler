@@ -14,9 +14,10 @@ psutil
 
 # Milestones
 
-- [ ] Implement `salloc.py`
-- [ ] Implement `srunsched.py`, except for the `read_env`
-- [ ] Test `salloc.py`
+- [x] Implement `salloc.py`
+- [x] Implement `srunsched.py`, except for the `read_env`
+- [x] Test `salloc.py`
+- [ ] Debug error message at exit for `salloc.py`
 - [ ] Implement `sbatch.py`
 - [ ] Finish `srunsched.py`
 - [ ] Test `sbatch.py`
