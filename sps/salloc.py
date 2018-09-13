@@ -23,13 +23,13 @@
 # Code:
 
 import getpass
+import json
 import os
 import subprocess
 import sys
 import time
 
 from flufl.lock import Lock
-
 
 dir_sps = "/var/sps"
 dir_gpu = os.path.join(dir_sps, "gpu")

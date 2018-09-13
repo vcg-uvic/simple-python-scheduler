@@ -372,7 +372,7 @@ def write_env(job_fullpath, env):
 
     # write env to env_fullpath
     with lock:
-        with open(env_fullpath, "r") as ifp:
+        with open(env_fullpath, "w") as ifp:
             env = json.dump(env, ifp)
 
 
