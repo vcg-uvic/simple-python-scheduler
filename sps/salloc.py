@@ -30,6 +30,7 @@ import sys
 import time
 
 from flufl.lock import Lock
+from parse import parse
 
 dir_sps = "/var/sps"
 dir_gpu = os.path.join(dir_sps, "gpu")
