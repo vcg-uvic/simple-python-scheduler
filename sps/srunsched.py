@@ -100,8 +100,8 @@ def copy_job(job_fullpath, dst):
 
     # set specs, i.e. start and end time
     cur_time = time.time()
-    job_spec["start"] = cur_time
-    job_spec["end"] = cur_time + 60 * 60 * float(job_spec["life"])
+    job_spec["start"] = str(cur_time)
+    job_spec["end"] = str(cur_time + 60 * 60 * float(job_spec["life"]))
 
     # write job to new file
     job = job_fullpath.split("/")[-1]
@@ -162,7 +162,7 @@ def check_job_finished(job_fullpath):
     job_specs = read_job(job_fullpath)
 
     # check time limit
-    if job_specs["end"] < time.time():
+    if float(job_specs["end"]) < time.time():
         return True
 
     # check if pid is alive
