@@ -188,6 +188,8 @@ def check_gpu_jobs():
             # Pass if not a regular file
             if not os.path.isfile(job_fullpath):
                 continue
+            if not job_fullpath.endswith(".job"):
+                continue
             # Kill finished jobs
             if check_job_finished(job_fullpath):
                 kill_job(job_fullpath)
@@ -259,6 +261,8 @@ def get_free_gpus():
             job_fullpath = os.path.join(dir_cur_gpu, job)
             # Pass if not a regular file
             if not os.path.isfile(job_fullpath):
+                continue
+            if not job_fullpath.endswith(".job"):
                 continue
             # Mark assigned
             print("{} is not free, {} is there".format(
@@ -434,28 +438,28 @@ def main(args):
     while True:
 
         # Read Queue Addition Pool (Directory)
-        print("Reading queue addition pool")
+        print("* Reading queue addition pool")
         new_jobs = collect_user_queue()
 
         # Add job to current Queue file
-        print("Adding job to current queue")
+        print("* Adding job to current queue")
         move_jobs_to_queue(new_jobs)
 
         # Check liftime of processes, as well as validity of any interactive job
-        print("Checking if any process should be killed and killing if finished")
+        print("* Checking if any process should be killed and killing if finished")
         check_gpu_jobs()
 
         # Select the oldest asalloc job, if it does not
-        print("Grabbing oldest job")
+        print("* Grabbing oldest job")
         job_fullpath = get_job()
-        print("Grabbed {}".format(job_fullpath))
+        print("  -- Grabbed {}".format(job_fullpath))
 
         # Check if there's a free GPU
-        print("Checking GPU availability")
+        print("* Checking GPU availability")
         free_gpus = get_free_gpus()
 
         # Assign job to GPU by moving the job to the GPU
-        print("Assigning job to GPU")
+        print("* Assigning job to GPU")
         job_fullpath, assigned_gpus = assign_job(job_fullpath, free_gpus)
 
         # Run job as user
