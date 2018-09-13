@@ -101,7 +101,7 @@ def copy_job(job_fullpath, dst):
     # set specs, i.e. start and end time
     cur_time = time.time()
     job_spec["start"] = cur_time
-    job_spec["end"] = cur_time + 60 * 60 * job_spec["life"]
+    job_spec["end"] = cur_time + 60 * 60 * float(job_spec["life"])
 
     # write job to new file
     job = job_fullpath.split("/")[-1]
