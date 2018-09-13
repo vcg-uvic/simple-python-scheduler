@@ -129,7 +129,8 @@ def get_assigned_gpus():
                 continue
             # Parse and check job info
             parseres = parse("{time}-{user}-{type}-{pid}.job", job)
-            print(parseres["user"], uname)
+            print(parseres["user"])
+            print(uname)
             if parseres["user"] != uname:
                 continue
             if parseres["pid"] != pid:
