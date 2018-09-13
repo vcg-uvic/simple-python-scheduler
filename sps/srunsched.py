@@ -192,6 +192,7 @@ def check_gpu_jobs():
                 continue
             # Kill finished jobs
             if check_job_finished(job_fullpath):
+                print("  -- Killing job {}".format(job_fullpath))
                 kill_job(job_fullpath)
 
 
