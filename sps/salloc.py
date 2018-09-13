@@ -1,24 +1,24 @@
 #!/usr/bin/env python3
-# salloc.py --- 
-# 
+# salloc.py ---
+#
 # Filename: salloc.py
-# Description: 
+# Description:
 # Author: Kwang Moo Yi
-# Maintainer: 
+# Maintainer:
 # Created: Tue Sep  4 16:33:02 2018 (-0700)
-# Version: 
-# 
+# Version:
+#
 
-# Commentary: 
-# 
-# 
-# 
-# 
+# Commentary:
+#
+#
+#
+#
 
 # Change Log:
-# 
-# 
-# 
+#
+#
+#
 
 # Code:
 
@@ -38,13 +38,14 @@ dir_queue = os.path.join(dir_sps, "queue")
 
 lock = Lock(os.path.join(dir_sps, "locks/lock"))
 
+
 def add_interactive(num_gpu, num_hour):
     """TODO: docstring
     """
 
     # Get Username
     uname = getpass.getuser()
-    
+
     # Get PID
     pid = os.getpid()
 
@@ -59,17 +60,32 @@ def add_interactive(num_gpu, num_hour):
     )
     job_file = os.path.join(dir_userqueue, job_name)
     with lock:                  # Lock to prevent race
+        # Write the job
         with open(job_file, "w") as ofp:
             ofp.write("{}\n{}\n{}\n".format(
                 "",
-                num_hour * 60 * 60, # In seconds
+                num_hour * 60 * 60,  # In seconds
                 num_gpu,
             ))
-    
+        # Write the env
+        sub_env = os.environ.copy()
+        write_env(job_file, sub_env)
+
+
+def write_env(job_fullpath, env):
+    """TODO: write"""
+
+    env_fullpath = job_fullpath.replace(".job", ".env")
+
+    # write env to env_fullpath
+    with lock:
+        with open(env_fullpath, "r") as ifp:
+            env = json.dump(env, ifp)
+
 
 def get_assigned_gpus():
     """ TODO: Docstring
-    
+
     Returns
     -------
     assigned_gpus: list of int
@@ -80,7 +96,7 @@ def get_assigned_gpus():
 
     # Get Username
     uname = getpass.getuser()
-    
+
     # Get PID
     pid = os.getpid()
 
@@ -104,16 +120,16 @@ def get_assigned_gpus():
             assigned_gpu += [int(dir_cur_gpu.split["/"][-1])]
 
     return assigned_gpus
-    
+
 
 def wait_for_gpus(num_gpu):
     """TODO: docstring
-    
+
     Returns
     -------
 
     gpu_str: string for the environment variable
-    
+
     TODO: Add signal catching or some sort to undo the job allocation
     TODO: Add early termination if job disappears from queue
     """
@@ -133,6 +149,7 @@ def wait_for_gpus(num_gpu):
     gpu_str = ",".join([str(g) for g in gpu_ids])
 
     return gpu_str
+
 
 def main(args):
 
@@ -168,6 +185,7 @@ def main(args):
 
     exit(0)
 
+
 if __name__ == "__main__":
 
     if len(sys.argv) != 3:
@@ -177,5 +195,5 @@ if __name__ == "__main__":
     main(sys.argv)
 
 
-# 
+#
 # salloc.py ends here
