@@ -452,7 +452,7 @@ def main(args):
 
         # Assign job to GPU by moving the job to the GPU
         print("Assigning job to GPU")
-        assigned_gpus = assign_job(job_fullpath, free_gpus)
+        job_fullpath, assigned_gpus = assign_job(job_fullpath, free_gpus)
 
         # Run job as user
         run_job(job_fullpath, assigned_gpus)
