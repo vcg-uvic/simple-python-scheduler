@@ -137,7 +137,7 @@ def get_assigned_gpus():
             if parseres["pid"] != pid:
                 continue
             # Add to assigned gpu
-            assigned_gpu += [int(dir_cur_gpu.split("/")[-1])]
+            assigned_gpus += [int(dir_cur_gpu.split("/")[-1])]
 
     return assigned_gpus
 
