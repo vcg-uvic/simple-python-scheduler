@@ -406,7 +406,7 @@ def write_env(job_fullpath, env):
 def run_job(job_fullpath, assigned_gpus):
 
     if job_fullpath is None:
-        print("No job to run")
+        print("  -- No job to run")
         return
 
     # Read job
