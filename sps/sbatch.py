@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # sbatch.py --- 
 # 
 # Filename: sbatch.py
