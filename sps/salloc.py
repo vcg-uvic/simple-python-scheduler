@@ -22,6 +22,7 @@
 
 # Code:
 
+import argparse
 import getpass
 import json
 import os
@@ -39,7 +40,29 @@ dir_queue = os.path.join(dir_sps, "queue")
 
 lock = Lock(os.path.join(dir_sps, "locks/lock"))
 
+# -----------------------------------------------------------------------------
+# Options and configurations
 
+parser = argparse.ArgumentParser()
+
+def add_argument_group(name):
+    arg = parser.add_argument_group(name)
+    arg_lists.append(arg)
+    return arg
+
+configs = add_argument_group("Configs")
+configs.add_argument("--num_gpu", type=int, default=1, help="number of gpus")
+configs.add_argument("--num_hour", type=float, default=1, help="number of hours")
+
+def get_config():
+    config, unparsed = parser.parse_known_args()
+
+    return config, unparsed
+
+def print_usage():
+    parser.print_usage()
+
+# -----------------------------------------------------------------------------
 def add_interactive(num_gpu, num_hour):
     """TODO: docstring
     """
@@ -177,10 +200,10 @@ def wait_for_gpus(num_gpu):
     return gpu_str
 
 
-def main(args):
+def main(config):
 
-    num_gpu = int(args[1])
-    num_hour = float(args[2])
+    num_gpu = config.num_gpu
+    num_hour = config.num_hour
 
     # Add job to addqueue
     print("* Adding interactive job to queue.")
@@ -214,11 +237,15 @@ def main(args):
 
 if __name__ == "__main__":
 
-    if len(sys.argv) != 3:
-        print("Usage: salloc <num_gpu> <allocation time in hours>")
+    # ----------------------------------------
+    # Parse configuration
+    config, unparsed = get_config()
+    # If we have unparsed arguments, print usage and exit
+    if len(unparsed) > 0:
+        print_usage()
         exit(1)
 
-    main(sys.argv)
+    main(config)
 
 
 #
