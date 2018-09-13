@@ -159,7 +159,7 @@ def wait_for_gpus(num_gpu):
     while True:
 
         gpu_ids = get_assigned_gpus()
-        print("Assigne gpus = {}".format(gpu_ids))
+        # print("Assigne gpus = {}".format(gpu_ids))
         if len(gpu_ids) == num_gpu:
             break
 
@@ -178,13 +178,15 @@ def main(args):
     num_hour = float(args[2])
 
     # Add job to addqueue
-    print("Adding interactive job to queue.")
+    print("* Adding interactive job to queue.")
     add_interactive(num_gpu, num_hour)
 
     # Wait until assigned
-    print("Waiting for an available GPU(s)...")
+    print("* Waiting for an available GPU(s) -- PID = {}...".format(
+        os.getpid()
+    ))
     gpu_str = wait_for_gpus(num_gpu)
-    print("GPU(s) {} allocated.".format(gpu_str))
+    print("* GPU(s) {} allocated.".format(gpu_str))
 
     # Run a sub-process with correct GPU exported
     sub_env = os.environ.copy()
