@@ -167,7 +167,7 @@ def check_job_finished(job_fullpath):
         return True
 
     # check if pid is alive
-    if not psutil.pid_exists(job_spec["pid"]):
+    if not psutil.pid_exists(int(job_spec["pid"])):
         return True
 
     # otherwise return false
