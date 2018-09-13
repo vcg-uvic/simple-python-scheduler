@@ -346,8 +346,10 @@ def remove_job(job_fullpath):
     """
 
     with lock:
-        os.remove(job_fullpath)
-        os.remove(job_fullpath.replace(".job", ".env"))
+        if os.path.exists(job_fullpath):
+            os.remove(job_fullpath)
+        if os.path.exists(job_fullpath.replace(".job", ".env")):
+            os.remove(job_fullpath.replace(".job", ".env"))
 
 
 def read_env(job_fullpath):
