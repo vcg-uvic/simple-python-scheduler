@@ -59,17 +59,33 @@ def add_interactive(num_gpu, num_hour):
         time.time(), uname, "salloc", pid
     )
     job_file = os.path.join(dir_userqueue, job_name)
-    with lock:                  # Lock to prevent race
-        # Write the job
-        with open(job_file, "w") as ofp:
-            ofp.write("{}\n{}\n{}\n".format(
-                "",
-                num_hour * 60 * 60,  # In seconds
-                num_gpu,
-            ))
-        # Write the env
-        sub_env = os.environ.copy()
-        write_env(job_file, sub_env)
+    job_spec = {
+        "cmd": "",
+        "life": str(num_hour),
+        "num_gpu": str(num_gpu),
+        "start": "",
+        "end": "",
+    }
+    # Write the job
+    write_job(job_file, job_spec)
+
+    # Write the env
+    sub_env = os.environ.copy()
+    write_env(job_file, sub_env)
+
+
+def write_job(job_fullpath, job_spec):
+    """ TODO: Docstring
+    """
+
+    # Write the contents to a job
+    with lock:
+        with open(job_fullpath, "w") as ofp:
+            ofp.write(job_spec["cmd"] + "\n")
+            ofp.write(job_spec["life"] + "\n")
+            ofp.write(job_spec["num_gpu"] + "\n")
+            ofp.write(job_spec["start"] + "\n")
+            ofp.write(job_spec["end"] + "\n")
 
 
 def write_env(job_fullpath, env):
