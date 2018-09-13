@@ -122,6 +122,7 @@ def get_assigned_gpus():
                 if os.path.isdir(os.path.join(dir_gpu, d))]
     # Look at assigned jobs
     for dir_cur_gpu in dir_gpus:
+        print("      -- Checking {}".format(dir_cur_gpu))
         for job in os.listdir(dir_cur_gpu):
             job_fullpath = os.path.join(dir_cur_gpu, job)
             # Pass if not a regular file
@@ -132,6 +133,7 @@ def get_assigned_gpus():
                 continue
             # Parse and check job info
             parseres = parse("{time}-{user}-{type}-{pid}.job", job)
+            print("      -- job = {}".format(job))
             if parseres["user"] != uname:
                 continue
             if parseres["pid"] != pid:
@@ -162,9 +164,10 @@ def wait_for_gpus(num_gpu):
         # print("Assigne gpus = {}".format(gpu_ids))
         if len(gpu_ids) == num_gpu:
             break
+        print(" -- waiting: my pid is {}".format(os.getpid()))
 
         # Sleep 10 seconds
-        time.sleep(10)
+        time.sleep(2)
 
     # Once job is allocated, return the GPU id in string
     gpu_str = ",".join([str(g) for g in gpu_ids])
@@ -182,9 +185,7 @@ def main(args):
     add_interactive(num_gpu, num_hour)
 
     # Wait until assigned
-    print("* Waiting for an available GPU(s) -- PID = {}...".format(
-        os.getpid()
-    ))
+    print("* Waiting for an available GPU(s)...")
     gpu_str = wait_for_gpus(num_gpu)
     print("* GPU(s) {} allocated.".format(gpu_str))
 

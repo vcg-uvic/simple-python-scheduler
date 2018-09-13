@@ -468,7 +468,7 @@ def main(args):
         run_job(job_fullpath, assigned_gpus)
 
         # Re-schedule after 30 seconds
-        time.sleep(30)
+        time.sleep(5)
 
     exit(0)
 
