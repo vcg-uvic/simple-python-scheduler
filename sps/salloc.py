@@ -115,6 +115,7 @@ def wait_for_gpus(num_gpu):
     gpu_str: string for the environment variable
     
     TODO: Add signal catching or some sort to undo the job allocation
+    TODO: Add early termination if job disappears from queue
     """
     gpu_ids = []
 
