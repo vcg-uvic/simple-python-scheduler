@@ -56,7 +56,7 @@ def collect_user_queue():
         for job in os.listdir(dir_userqueue):
             job_fullpath = os.path.join(dir_userqueue, job)
             # Ignore the ones that are not files
-            if not os.isfile(job_fullpath):
+            if not os.path.isfile(job_fullpath):
                 continue
             # Ignore the ones that are not ending with job
             if not job_fullpath.endswith(".job"):
