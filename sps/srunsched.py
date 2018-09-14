@@ -130,7 +130,7 @@ def safe_kill_pid(pid):
     """ TODO: Writeme
     """
 
-    current_process = psutil.Process(int(job_spec["pid"]))
+    current_process = psutil.Process(pid)
     procs = current_process.children(recursive=True)
     current_process.terminate()
     gone, alive = psutil.wait_procs(procs, timeout=3)
