@@ -52,8 +52,10 @@ def add_argument_group(name):
     return arg
 
 configs = add_argument_group("Configs")
-configs.add_argument("--num_gpu", type=int, default=1, help="number of gpus")
-configs.add_argument("--num_hour", type=float, default=1, help="number of hours")
+configs.add_argument("--num_gpu", type=int, default=1,
+                     help="Number of gpus to allocate.")
+configs.add_argument("--num_hour", type=float, default=1,
+                     help="Number of hours. When exceeded the job will be killed.")
 
 def get_config():
     config, unparsed = parser.parse_known_args()
