@@ -100,6 +100,17 @@ def add_interactive(num_gpu, num_hour):
     write_env(job_file, sub_env)
 
 
+def read_job(job_fullpath):
+    """ TODO: Docstring
+    """
+
+    # Parse the contents of the job
+    with Lock(lock_file):
+        with open(job_fullpath, "r") as ifp:
+            job_spec = json.load(ifp)
+
+    return job_spec
+
 def write_job(job_fullpath, job_spec):
     """ TODO: Docstring
     """
@@ -107,11 +118,7 @@ def write_job(job_fullpath, job_spec):
     # Write the contents to a job
     with Lock(lock_file):
         with open(job_fullpath, "w") as ofp:
-            ofp.write(job_spec["cmd"] + "\n")
-            ofp.write(job_spec["life"] + "\n")
-            ofp.write(job_spec["num_gpu"] + "\n")
-            ofp.write(job_spec["start"] + "\n")
-            ofp.write(job_spec["end"] + "\n")
+            json.dump(job_spec, ofp)
 
 
 def write_env(job_fullpath, env):
@@ -121,8 +128,8 @@ def write_env(job_fullpath, env):
 
     # write env to env_fullpath
     with Lock(lock_file):
-        with open(env_fullpath, "w") as ifp:
-            env = json.dump(env, ifp)
+        with open(env_fullpath, "w") as ofp:
+            json.dump(env, ofp)
 
 
 def get_assigned_gpus():
@@ -156,14 +163,14 @@ def get_assigned_gpus():
             # Pass if not a job
             if not job_fullpath.endswith(".job"):
                 continue
-            # Parse and check job info
-            parseres = parse("{time}-{user}-{type}-{pid}.job", job)
+            # read and check job info
+            job_spec = read_job(job_fullpath)
             # print("      -- job = {}".format(job))
-            if parseres["type"] != "salloc":
+            if job_spec["type"] != "salloc":
                 continue
-            if parseres["user"] != uname:
+            if job_spec["user"] != uname:
                 continue
-            if parseres["pid"] != str(pid):
+            if job_spec["pid"] != str(pid):
                 continue
             # Add to assigned gpu
             assigned_gpus += [int(dir_cur_gpu.split("/")[-1])]

@@ -32,7 +32,6 @@ import time
 
 import numpy as np
 from flufl.lock import Lock
-from parse import parse
 
 import psutil
 import pynvml as N
@@ -292,7 +291,7 @@ def get_job():
     job_fullpath = None
 
     # Get all jobs
-    jobs = [j for j in os.listdir(dir_queue) if
+    jobs = [os.path.join(dir_queue, j) for j in os.listdir(dir_queue) if
             j.endswith(".job")]
 
     # Sort job according to time
@@ -300,14 +299,14 @@ def get_job():
 
     # Try to get the oldest alloc job
     for job in jobs:
-        job_spec = parse("{time}-{user}-{type}-{pid}.job", job)
+        job_spec = read_job(job)
         if job_spec["type"] == "salloc":
             job_fullpath = os.path.join(dir_queue, job)
             return job_fullpath
 
     # Try to get the oldest batch job
     for job in jobs:
-        job_spec = parse("{time}-{user}-{type}-{pid}.job", job)
+        job_spec = read_job(job)
         if job_spec["type"] == "sbatch":
             job_fullpath = os.path.join(dir_queue, job)
             return job_fullpath
@@ -418,22 +417,10 @@ def read_job(job_fullpath):
     """ TODO: Docstring
     """
 
-    # First parse the job name
-    job = job_fullpath.split("/")[-1]
-    job_spec = parse("{time}-{user}-{type}-{pid}.job", job).named
-
     # Parse the contents of the job
     with Lock(lock_file):
         with open(job_fullpath, "r") as ifp:
-            # TODO: Limit maximum
-            contents = ifp.readlines()
-            assert len(contents) == 3 or len(contents) == 5
-            job_spec["cmd"] = contents[0].rstrip("\n")
-            job_spec["life"] = contents[1].rstrip("\n")
-            job_spec["num_gpu"] = contents[2].rstrip("\n")
-            if len(contents) > 3:
-                job_spec["start"] = contents[3].rstrip("\n")
-                job_spec["end"] = contents[4].rstrip("\n")
+            job_spec = json.load(ifp)
 
     return job_spec
 
@@ -445,11 +432,7 @@ def write_job(job_fullpath, job_spec):
     # Write the contents to a job
     with Lock(lock_file):
         with open(job_fullpath, "w") as ofp:
-            ofp.write(job_spec["cmd"] + "\n")
-            ofp.write(job_spec["life"] + "\n")
-            ofp.write(job_spec["num_gpu"] + "\n")
-            ofp.write(job_spec["start"] + "\n")
-            ofp.write(job_spec["end"] + "\n")
+            json.dump(job_spec, ofp)
 
 
 def remove_job(job_fullpath):
