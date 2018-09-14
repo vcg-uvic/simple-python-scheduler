@@ -10,17 +10,8 @@ needs security.
 ```
 flufl.lock
 psutil
+nvidia-ml-py3
 ```
-
-# Milestones
-
-- [x] Implement `salloc.py`
-- [x] Implement `srunsched.py`, except for the `read_env`
-- [x] Test `salloc.py`
-- [ ] Debug error message at exit for `salloc.py`
-- [ ] Implement `sbatch.py`
-- [ ] Finish `srunsched.py`
-- [ ] Test `sbatch.py`
 
 # Supported Commands
 
@@ -71,20 +62,7 @@ job submitter.
 
 `type` will be either `salloc` or `sbatch`.
 
-
-Each job file will have inside a structure as the following:
-
-```
-shell command_to_run (for interactive jobs, blank)
-life time
-number of gpu
-start time (written by the scheduler)
-end time (written by the scheduler)
-```
-
-Which will be parsed respectively with keywords "cmd", "life", "num_gpu",
-"start", "end".
-
+All job files and env files are in json format.
 
 # TODO
 
