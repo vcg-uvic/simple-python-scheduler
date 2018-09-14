@@ -267,10 +267,14 @@ def check_gpu_jobs():
     for pg in running_pid_gpuid:
         # If theres nothing allowed to run at all
         if pg[1] not in valid_pid_for_gpu:
+            # TODO: Also display who's process this is
+            print("  -- Killing intruding process {}".format(pg[0]))
             safe_kill_pid(pg[0])
         else:
             # If it's not in the allowed list
             if pg[0] not in valid_pid_for_gpu[pg[1]]:
+                # TODO: Also display who's process this is
+                print("  -- Killing intruding process {}".format(pg[0]))
                 safe_kill_pid(pg[0])
 
 
