@@ -298,9 +298,9 @@ def get_job():
     for job in jobs:
         job_spec = read_job(job)
         if job_spec["type"] == "salloc":
-            int_job += [job]
+            int_jobs += [job]
         else:
-            bat_job += [job]
+            bat_jobs += [job]
 
     # First try to run interactive job
     if len(int_job) > 0:
