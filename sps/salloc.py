@@ -147,7 +147,7 @@ def get_assigned_gpus():
                 if os.path.isdir(os.path.join(dir_gpu, d))]
     # Look at assigned jobs
     for dir_cur_gpu in dir_gpus:
-        print("      -- Checking {}".format(dir_cur_gpu))
+        # print("      -- Checking {}".format(dir_cur_gpu))
         for job in os.listdir(dir_cur_gpu):
             job_fullpath = os.path.join(dir_cur_gpu, job)
             # Pass if not a regular file
@@ -158,7 +158,7 @@ def get_assigned_gpus():
                 continue
             # Parse and check job info
             parseres = parse("{time}-{user}-{type}-{pid}.job", job)
-            print("      -- job = {}".format(job))
+            # print("      -- job = {}".format(job))
             if parseres["type"] != "salloc":
                 continue
             if parseres["user"] != uname:
@@ -191,7 +191,7 @@ def wait_for_gpus(num_gpu):
         # print("Assigne gpus = {}".format(gpu_ids))
         if len(gpu_ids) == num_gpu:
             break
-        print(" -- waiting: my pid is {}".format(os.getpid()))
+        print("  -- waiting: my pid is {}".format(os.getpid()))
 
         # Sleep 10 seconds
         time.sleep(2)
@@ -214,7 +214,7 @@ def main(config):
     # Wait until assigned
     print("* Waiting for an available GPU(s)...")
     gpu_str = wait_for_gpus(num_gpu)
-    print("* GPU(s) {} allocated.".format(gpu_str))
+    print("* GPU(s) with ID={} allocated.".format(gpu_str))
 
     # Run a sub-process with correct GPU exported
     sub_env = os.environ.copy()
@@ -231,7 +231,7 @@ def main(config):
 
     # Print message
     print("-----------------------------------------------------------------------")
-    print("GPU(s) {} now released.".format(gpu_str))
+    print("GPU(s) with ID={} now released.".format(gpu_str))
     print("-----------------------------------------------------------------------")
 
     exit(0)
