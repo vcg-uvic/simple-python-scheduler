@@ -41,8 +41,7 @@ dir_sps = "/var/sps"
 dir_gpu = os.path.join(dir_sps, "gpu")
 dir_addqueue = os.path.join(dir_sps, "addqueue")
 dir_queue = os.path.join(dir_sps, "queue")
-
-lock = Lock(os.path.join(dir_sps, "locks/lock"))
+lock_file = os.path.join(dir_sps, "locks/lock")
 
 
 def list_sub_dir(d):
@@ -424,7 +423,7 @@ def read_job(job_fullpath):
     job_spec = parse("{time}-{user}-{type}-{pid}.job", job).named
 
     # Parse the contents of the job
-    with lock:
+    with Lock(lock_file):
         with open(job_fullpath, "r") as ifp:
             # TODO: Limit maximum
             contents = ifp.readlines()
@@ -444,7 +443,7 @@ def write_job(job_fullpath, job_spec):
     """
 
     # Write the contents to a job
-    with lock:
+    with Lock(lock_file):
         with open(job_fullpath, "w") as ofp:
             ofp.write(job_spec["cmd"] + "\n")
             ofp.write(job_spec["life"] + "\n")
@@ -457,7 +456,7 @@ def remove_job(job_fullpath):
     """ TODO: writeme
     """
 
-    with lock:
+    with Lock(lock_file):
         if os.path.exists(job_fullpath):
             os.remove(job_fullpath)
         if os.path.exists(job_fullpath.replace(".job", ".env")):
@@ -470,7 +469,7 @@ def read_env(job_fullpath):
     env_fullpath = job_fullpath.replace(".job", ".env")
 
     # read env from env_fullpath
-    with lock:
+    with Lock(lock_file):
         with open(env_fullpath, "r") as ifp:
             env = json.load(ifp)
 
@@ -483,7 +482,7 @@ def write_env(job_fullpath, env):
     env_fullpath = job_fullpath.replace(".job", ".env")
 
     # write env to env_fullpath
-    with lock:
+    with Lock(lock_file):
         with open(env_fullpath, "w") as ifp:
             env = json.dump(env, ifp)
 

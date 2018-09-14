@@ -37,8 +37,8 @@ dir_sps = "/var/sps"
 dir_gpu = os.path.join(dir_sps, "gpu")
 dir_addqueue = os.path.join(dir_sps, "addqueue")
 dir_queue = os.path.join(dir_sps, "queue")
+lock_file = os.path.join(dir_sps, "locks/lock")
 
-lock = Lock(os.path.join(dir_sps, "locks/lock"))
 
 # -----------------------------------------------------------------------------
 # Options and configurations
@@ -105,7 +105,7 @@ def write_job(job_fullpath, job_spec):
     """
 
     # Write the contents to a job
-    with lock:
+    with Lock(lock_file):
         with open(job_fullpath, "w") as ofp:
             ofp.write(job_spec["cmd"] + "\n")
             ofp.write(job_spec["life"] + "\n")
@@ -120,7 +120,7 @@ def write_env(job_fullpath, env):
     env_fullpath = job_fullpath.replace(".job", ".env")
 
     # write env to env_fullpath
-    with lock:
+    with Lock(lock_file):
         with open(env_fullpath, "w") as ifp:
             env = json.dump(env, ifp)
 
