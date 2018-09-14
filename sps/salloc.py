@@ -240,7 +240,7 @@ def main(config):
     sub_env = os.environ.copy()
     sub_env["CUDA_VISIBLE_DEVICES"] = gpu_str
     # Copy RC file to tmp
-    shell = os.getenv("SHELL", "bash")
+    shell = "bash"#os.getenv("SHELL", "bash")
     if shell.endswith("zsh"):
         rcfile = os.path.expanduser("~/.zshrc")
         rcopt = "--rcs"
@@ -255,12 +255,13 @@ def main(config):
         shutil.copy(rcfile, new_rcfile)
         # add export CUDA_VISIBLE_DEVICES at the end
         with open(new_rcfile, "a") as ofp:
+            # ofp.write("echo SOURCING MODIFIED")
             ofp.write("\n\nexport CUDA_VISIBLE_DEVICES={}\n\n".format(
                 gpu_str))
 
         # Launch shell with new rc
         subprocess.run(
-            [shell, rcopt, new_rcfile, "source", new_rcfile],
+            " ".join([shell, rcopt, new_rcfile]),
             env=sub_env,
             shell=True
         )
