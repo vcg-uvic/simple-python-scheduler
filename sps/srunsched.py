@@ -35,6 +35,7 @@ from flufl.lock import Lock
 from parse import parse
 
 import psutil
+import pynvml as N
 
 dir_sps = "/var/sps"
 dir_gpu = os.path.join(dir_sps, "gpu")
@@ -125,6 +126,23 @@ def move_jobs_to_queue(new_jobs):
         remove_job(job_fullpath)
 
 
+def safe_kill_pid(pid):
+    """ TODO: Writeme
+    """
+
+    current_process = psutil.Process(int(job_spec["pid"]))
+    procs = current_process.children(recursive=True)
+    current_process.terminate()
+    gone, alive = psutil.wait_procs(procs, timeout=3)
+    for p in alive:
+        try:
+            p.kill()
+        except psutil.NoSuchProcess:
+            print("        -- Error in killing job, ignoring")
+            pass
+    # os.kill(int(job_spec["pid"]), signal.SIGTERM)
+
+
 def kill_job(job_fullpath):
     """ TODO: Docstring
     """
@@ -133,15 +151,7 @@ def kill_job(job_fullpath):
     job_spec = read_job(job_fullpath)
     # Kill 9 for now. No graceful exit. Don't trust the user.
     if psutil.pid_exists(int(job_spec["pid"])):
-        current_process = psutil.Process(int(job_spec["pid"]))
-        procs = current_process.children(recursive=True)
-        procs += [current_process]
-        for p in procs:
-            p.terminate()
-            gone, alive = psutil.wait_procs(procs, timeout=3)
-        for p in alive:
-            p.kill()
-        # os.kill(int(job_spec["pid"]), signal.SIGTERM)
+        safe_kill_pid(int(job_spec["pid"]))
 
     # delete job file
     remove_job(job_fullpath)
@@ -182,6 +192,35 @@ def check_job_finished(job_fullpath):
     return False
 
 
+def get_running_pid_gpuid():
+    """
+
+    Partly from 
+    https://github.com/wookayin/gpustat/blob/master/gpustat/core.py
+
+    """
+
+    pid_gpuid = []
+    N.nvmlInit()
+    device_count = N.nvmlDeviceGetCount()
+    for index in range(device_count):
+        handle = N.nvmlDeviceGetHandleByIndex(index)
+        # Get Running Processes from NVML
+        procs = []
+        try:
+            procs += N.nvmlDeviceGetComputeRunningProcesses(handle)
+        except N.NVMLError:
+            pass  # Not supported
+        try:
+            procs += N.nvmlDeviceGetGraphicsRunningProcesses(handle)
+        except N.NVMLError:
+            pass  # Not supported
+        for proc in procs:
+            pid_gpuid += [(proc.pid, index)]
+
+    return pid_gpuid
+
+
 def check_gpu_jobs():
     """ TODO: Docstring
     """
@@ -189,8 +228,12 @@ def check_gpu_jobs():
     dir_gpus = [os.path.join(dir_gpu, d) for d in os.listdir(dir_gpu)
                 if os.path.isdir(os.path.join(dir_gpu, d))]
 
+    # Check also gpu job pids so that we check for intruders
+    pid_gpuid = []
+
     # For all gpu directories
     for dir_cur_gpu in dir_gpus:
+        gpuid = int(dir_cur_gpu.split("/")[-1])
         for job in os.listdir(dir_cur_gpu):
             job_fullpath = os.path.join(dir_cur_gpu, job)
             # Pass if not a regular file
@@ -198,10 +241,32 @@ def check_gpu_jobs():
                 continue
             if not job_fullpath.endswith(".job"):
                 continue
-            # Kill finished jobs
+            # Check job lifetime
             if check_job_finished(job_fullpath):
+                # Kill finished jobs
                 print("  -- Killing job {}".format(job_fullpath))
                 kill_job(job_fullpath)
+            else:
+                job_spec = read_job(job_fullpath)
+                pid_gpuid += [(int(job_spec["pid"]), gpuid)]
+
+    # Expand to all child processes
+    valid_pid_for_gpu = {}
+    for pg in pid_gpuid:
+        # Put self in
+        if pg[1] not in valid_pid:
+            valid_pid_for_gpu[pg[1]] = set([])
+
+        current_process = psutil.Process(pg[0])
+        procs = current_process.children(recursive=True)
+        for p in procs:
+            valid_pid_for_gpu[pg[1]].add(p.pid)
+
+    # Kill all intruders
+    running_pid_gpuid = get_running_pid_gpuid()
+    for pg in running_pid_gpuid:
+        if pg[0] not in valid_pid_for_gpu[pg[1]]:
+            safe_kill_pid(pg[0])
 
 
 def get_job():
@@ -285,13 +350,13 @@ def get_free_gpus():
 
 def assign_job(job_fullpath, free_gpus):
     """ TODO: docstring
-    
+
     Returns
     -------
 
     job_fullpath: str
         Full path to the new job script located under gpu
-    
+
     assigned_gpus: list of int
         List of assigned GPUs.
     """
@@ -310,7 +375,7 @@ def assign_job(job_fullpath, free_gpus):
     if num_gpu <= len(free_gpus):
         # First copy for all gpus
         for gpu in free_gpus[:num_gpu]:
-            new_dir = os.path.join(dir_sps, "gpu/{}".format(gpu)) 
+            new_dir = os.path.join(dir_sps, "gpu/{}".format(gpu))
             copy_job(job_fullpath, new_dir)
         # Now delete from queue
         remove_job(job_fullpath)
@@ -324,6 +389,7 @@ def assign_job(job_fullpath, free_gpus):
         assigned_gpus = None
 
     return job_fullpath, assigned_gpus
+
 
 def demote_to(user):
     """ TODO: writeme
@@ -376,6 +442,7 @@ def write_job(job_fullpath, job_spec):
             ofp.write(job_spec["num_gpu"] + "\n")
             ofp.write(job_spec["start"] + "\n")
             ofp.write(job_spec["end"] + "\n")
+
 
 def remove_job(job_fullpath):
     """ TODO: writeme
