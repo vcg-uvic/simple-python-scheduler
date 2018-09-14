@@ -138,7 +138,7 @@ def kill_job(job_fullpath):
         procs += [current_process]
         for p in procs:
             p.terminate()
-            gone, alive = psutil.wait_procs(procs, timeout=3, callback=on_terminate)
+            gone, alive = psutil.wait_procs(procs, timeout=3)
         for p in alive:
             p.kill()
         # os.kill(int(job_spec["pid"]), signal.SIGTERM)
