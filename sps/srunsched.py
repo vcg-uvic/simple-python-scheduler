@@ -288,30 +288,35 @@ def get_job():
 
     """
 
-    job_fullpath = None
-
     # Get all jobs
     jobs = [os.path.join(dir_queue, j) for j in os.listdir(dir_queue) if
             j.endswith(".job")]
 
-    # Sort job according to time
-    jobs = np.sort(jobs)
-
-    # Try to get the oldest alloc job
+    # Split jobs into interactive and batch
+    int_jobs = []
+    bat_jobs = []
     for job in jobs:
         job_spec = read_job(job)
         if job_spec["type"] == "salloc":
-            job_fullpath = os.path.join(dir_queue, job)
-            return job_fullpath
+            int_job += [job]
+        else:
+            bat_job += [job]
 
-    # Try to get the oldest batch job
-    for job in jobs:
-        job_spec = read_job(job)
-        if job_spec["type"] == "sbatch":
-            job_fullpath = os.path.join(dir_queue, job)
-            return job_fullpath
+    # First try to run interactive job
+    if len(int_job) > 0:
+        int_jobs = np.sort(int_jobs)
+        for job in int_jobs:
+            # TODO: Check gpu usage and validity
+            return os.path.join(dir_queue, job)
 
-    return job_fullpath
+    # Now try to run batch job
+    if len(bat_job) > 0:
+        bat_jobs = np.sort(bat_jobs)
+        for job in bat_jobs:
+            # TODO: Check gpu usage and validity
+            return os.path.join(dir_queue, job)
+
+    return None
 
 
 def get_free_gpus():
@@ -517,7 +522,7 @@ def main(args):
         print("* Checking if any process should be killed and killing if finished")
         check_gpu_jobs()
 
-        # Select the oldest asalloc job, if it does not
+        # Select a job
         print("* Grabbing oldest job")
         job_fullpath = get_job()
         print("  -- Grabbed {}".format(job_fullpath))
