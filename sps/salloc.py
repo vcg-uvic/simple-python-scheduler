@@ -47,10 +47,12 @@ parser = argparse.ArgumentParser()
 
 arg_lists = []
 
+
 def add_argument_group(name):
     arg = parser.add_argument_group(name)
     arg_lists.append(arg)
     return arg
+
 
 configs = add_argument_group("Configs")
 configs.add_argument("--num_gpu", type=int, default=1,
@@ -58,15 +60,19 @@ configs.add_argument("--num_gpu", type=int, default=1,
 configs.add_argument("--num_hour", type=float, default=1,
                      help="Number of hours. When exceeded the job will be killed.")
 
+
 def get_config():
     config, unparsed = parser.parse_known_args()
 
     return config, unparsed
 
+
 def print_usage():
     parser.print_usage()
 
 # -----------------------------------------------------------------------------
+
+
 def add_interactive(num_gpu, num_hour):
     """TODO: docstring
     """
@@ -117,6 +123,7 @@ def read_job(job_fullpath):
             job_spec = json.load(ifp)
 
     return job_spec
+
 
 def write_job(job_fullpath, job_spec):
     """ TODO: Docstring
@@ -240,13 +247,15 @@ def main(config):
     sub_env = os.environ.copy()
     sub_env["CUDA_VISIBLE_DEVICES"] = gpu_str
     # Copy RC file to tmp
-    shell = "bash"#os.getenv("SHELL", "bash")
+    shell = "bash"  # os.getenv("SHELL", "bash")
     if shell.endswith("zsh"):
         rcfile = os.path.expanduser("~/.zshrc")
         rcopt = "--rcs"
+        prompt_var = "PS1"
     elif shell.endswith("bash"):
         rcfile = os.path.expanduser("~/.bashrc")
         rcopt = "--rcfile"
+        prompt_var = "PROMPT"
     else:
         raise RuntimeError("{} is not supported".format(shell))
     # Lock interferance
@@ -258,6 +267,8 @@ def main(config):
             # ofp.write("echo SOURCING MODIFIED")
             ofp.write("\n\nexport CUDA_VISIBLE_DEVICES={}\n\n".format(
                 gpu_str))
+            ofp.write("\n\nexport {}=({}):${}".format(prompt_var, gpu_str,
+                                                      prompt_var))
 
         # Launch shell with new rc
         subprocess.run(
