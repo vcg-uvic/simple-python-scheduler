@@ -260,7 +260,7 @@ def main(config):
 
         # Launch shell with new rc
         subprocess.run(
-            [shell, rcopt, new_rcfile],
+            [shell, rcopt, new_rcfile, "source", new_rcfile],
             env=sub_env,
             shell=True
         )
