@@ -267,8 +267,8 @@ def main(config):
             # ofp.write("echo SOURCING MODIFIED")
             ofp.write("\n\nexport CUDA_VISIBLE_DEVICES={}\n\n".format(
                 gpu_str))
-            ofp.write("\n\nexport {}=({}):${}\n\n".format(prompt_var, gpu_str,
-                                                          prompt_var))
+            ofp.write("\n\nexport {}=(GPU={}):${}\n\n".format(
+                prompt_var, gpu_str, prompt_var))
 
     # Launch shell with new rc
     subprocess.run(
