@@ -89,7 +89,7 @@ def add_interactive(num_gpu, num_hour):
     job_spec = {
         "time": cur_time,
         "user": uname,
-        "type": salloc,
+        "type": "salloc",
         "pid": pid,
         "cmd": "",
         "life": str(num_hour),
