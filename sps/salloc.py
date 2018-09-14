@@ -81,11 +81,16 @@ def add_interactive(num_gpu, num_hour):
         raise RuntimeError("{} is not setup to use GPUs! Contact admin!")
 
     # Add an interactive job
+    cur_time = time.time()
     job_name = "{}-{}-{}-{}.job".format(
-        time.time(), uname, "salloc", pid
+        cur_time, uname, "salloc", pid
     )
     job_file = os.path.join(dir_userqueue, job_name)
     job_spec = {
+        "time": cur_time,
+        "user": uname,
+        "type": salloc,
+        "pid": pid,
         "cmd": "",
         "life": str(num_hour),
         "num_gpu": str(num_gpu),
