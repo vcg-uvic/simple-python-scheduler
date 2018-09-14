@@ -303,14 +303,14 @@ def get_job():
             bat_jobs += [job]
 
     # First try to run interactive job
-    if len(int_job) > 0:
+    if len(int_jobs) > 0:
         int_jobs = np.sort(int_jobs)
         for job in int_jobs:
             # TODO: Check gpu usage and validity
             return os.path.join(dir_queue, job)
 
     # Now try to run batch job
-    if len(bat_job) > 0:
+    if len(bat_jobs) > 0:
         bat_jobs = np.sort(bat_jobs)
         for job in bat_jobs:
             # TODO: Check gpu usage and validity
