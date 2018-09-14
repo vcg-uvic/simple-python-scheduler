@@ -5,6 +5,11 @@ this scheduler works purely based on trust that all users will use this to run
 their scripts. This script is **NOT INTENDED** for complex environments that
 needs security.
 
+Right now, the only thing it can do is allocate GPUs to users on demand, and
+kill any processes that are intruding. It will also kill processes that
+exceeded the initial lifetime.
+
+
 # Dependancies
 
 ```
@@ -20,6 +25,13 @@ nvidia-ml-py3
 Will start an interactive shell with the correct GPU allocated. Closing the
 shell will result in releasing the GPU.
 
+## `srunsched`
+
+Run the scheduler.
+
+
+# Planned Commands
+
 ## `sbatch`
 
 Will queue the job for execution. First queued object will run. We won't have
@@ -32,10 +44,6 @@ Read and report the current queue.
 ## `susage`
 
 Report wall time of all users. (later)
-
-## `srunsched`
-
-Run the scheduler.
 
 # Directory to be monitored
 
