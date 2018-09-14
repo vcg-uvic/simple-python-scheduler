@@ -230,17 +230,39 @@ def main(config):
     print("* GPU(s) with ID={} allocated.".format(gpu_str))
 
     # Run a sub-process with correct GPU exported
-    sub_env = os.environ.copy()
-    sub_env["CUDA_VISIBLE_DEVICES"] = gpu_str
     print("-----------------------------------------------------------------------")
     print("Starting shell with CUDA_VISIBLE_DEVICES set, do not edit this variable")
     print("")
     print("Remember to close this interactive once finished to release GPU")
     print("-----------------------------------------------------------------------")
-    subprocess.run(
-        os.getenv("SHELL", "bash"),
-        env=sub_env
-    )
+    # Copy and set env
+    sub_env = os.environ.copy()
+    sub_env["CUDA_VISIBLE_DEVICES"] = gpu_str
+    # Copy RC file to tmp
+    shell = os.getenv("SHELL", "bash")
+    if shell.endswith("zsh"):
+        rcfile = os.path.expanduser("~/.zshrc")
+        rcopt = "--rcs"
+    elif shell.endswith("bash"):
+        rcfile = os.path.expanduser("~/.bashrc")
+        rcopt = "--rcfile"
+    else:
+        raise RuntimeError("{} is not supported".format(shell))
+    # Lock interferance
+    with Lock(lock_file):
+        new_rcfile = os.path.expanduser("~/.spsrc")
+        shutil.copy(rcfile, new_rcfile)
+        # add export CUDA_VISIBLE_DEVICES at the end
+        with open(new_rcfile, "a") as ofp:
+            ofp.write("\n\nexport CUDA_VISIBLE_DEVICES={}\n\n".format(
+                gpu_str))
+
+        # Launch shell with new rc
+        subprocess.run(
+            [shell, rcopt, new_rcfile],
+            env=sub_env,
+            shell=True
+        )
 
     # Print message
     print("-----------------------------------------------------------------------")
