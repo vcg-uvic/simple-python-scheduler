@@ -254,7 +254,7 @@ def check_gpu_jobs():
     valid_pid_for_gpu = {}
     for pg in pid_gpuid:
         # Put self in
-        if pg[1] not in valid_pid:
+        if pg[1] not in valid_pid_for_gpu:
             valid_pid_for_gpu[pg[1]] = set([])
 
         current_process = psutil.Process(pg[0])
