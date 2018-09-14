@@ -246,36 +246,40 @@ def main(config):
     # Copy and set env
     sub_env = os.environ.copy()
     sub_env["CUDA_VISIBLE_DEVICES"] = gpu_str
-    # Copy RC file to tmp
-    shell = "bash"  # os.getenv("SHELL", "bash")
+    # Create a new rc file to folder
+    new_rc_dir = os.path.expanduser("~/.spsrc")
+    if not os.path.isdir(new_rc_dir):
+        os.remove(new_rc_dir)
+    if not os.path.exists(new_rc_dir):
+        os.makedirs(new_rc_dir)
+    # Firgure out shell and adapt the command to rund
+    shell = os.getenv("SHELL", "bash")
     if shell.endswith("zsh"):
         rcfile = os.path.expanduser("~/.zshrc")
-        rcopt = "--rcs"
+        new_rcfile = os.path.join(new_rc_dir, rcfile.split("/")[-1])
         prompt_var = "PS1"
+        cmd = "ZDOTDIR={} {}".format(new_rc_dir, shell)
     elif shell.endswith("bash"):
         rcfile = os.path.expanduser("~/.bashrc")
-        rcopt = "--rcfile"
+        new_rcfile = os.path.join(new_rc_dir, rcfile.split("/")[-1])
         prompt_var = "PS1"
+        cmd = "{} --rcfile {}".format(shell, new_rcfile)
     else:
         raise RuntimeError("{} is not supported".format(shell))
-    # Lock interferance
+    # Lock to prevent interferance
     with Lock(lock_file):
-        new_rcfile = os.path.expanduser("~/.spsrc")
+        # copy rc file to new directory
         shutil.copy(rcfile, new_rcfile)
         # add export CUDA_VISIBLE_DEVICES at the end
         with open(new_rcfile, "a") as ofp:
-            # ofp.write("echo SOURCING MODIFIED")
+            ofp.write("\necho SOURCING MODIFIED\n")
             ofp.write("\n\nexport CUDA_VISIBLE_DEVICES={}\n\n".format(
                 gpu_str))
-            ofp.write("\n\nexport {}=(GPU={}):${}\n\n".format(
+            ofp.write("\n\nexport {}=\"(GPU={}) \"${}\n\n".format(
                 prompt_var, gpu_str, prompt_var))
 
     # Launch shell with new rc
-    subprocess.run(
-        " ".join([shell, rcopt, new_rcfile]),
-        env=sub_env,
-        shell=True
-    )
+    subprocess.run(cmd, env=sub_env, shell=True)
 
     # Print message
     print("-----------------------------------------------------------------------")
