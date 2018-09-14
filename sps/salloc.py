@@ -31,7 +31,6 @@ import sys
 import time
 
 from flufl.lock import Lock
-from parse import parse
 
 dir_sps = "/var/sps"
 dir_gpu = os.path.join(dir_sps, "gpu")
@@ -87,10 +86,10 @@ def add_interactive(num_gpu, num_hour):
     )
     job_file = os.path.join(dir_userqueue, job_name)
     job_spec = {
-        "time": cur_time,
+        "time": str(cur_time),
         "user": uname,
         "type": "salloc",
-        "pid": pid,
+        "pid": str(pid),
         "cmd": "",
         "life": str(num_hour),
         "num_gpu": str(num_gpu),
