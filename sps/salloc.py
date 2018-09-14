@@ -255,7 +255,7 @@ def main(config):
     elif shell.endswith("bash"):
         rcfile = os.path.expanduser("~/.bashrc")
         rcopt = "--rcfile"
-        prompt_var = "PROMPT"
+        prompt_var = "PS1"
     else:
         raise RuntimeError("{} is not supported".format(shell))
     # Lock interferance
@@ -270,12 +270,12 @@ def main(config):
             ofp.write("\n\nexport {}=({}):${}\n\n".format(prompt_var, gpu_str,
                                                           prompt_var))
 
-        # Launch shell with new rc
-        subprocess.run(
-            " ".join([shell, rcopt, new_rcfile]),
-            env=sub_env,
-            shell=True
-        )
+    # Launch shell with new rc
+    subprocess.run(
+        " ".join([shell, rcopt, new_rcfile]),
+        env=sub_env,
+        shell=True
+    )
 
     # Print message
     print("-----------------------------------------------------------------------")
