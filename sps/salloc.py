@@ -377,7 +377,7 @@ def main(config):
 
     # Check quota and availability
     print("* Checking quota and availability")
-    if is_my_quota_valid(num_gpu):
+    if not is_my_quota_valid(num_gpu):
         print("* Quota is not valid, terminating.")
         exit(1)
     else:
