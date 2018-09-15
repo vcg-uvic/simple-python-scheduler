@@ -62,7 +62,7 @@ configs = add_argument_group("Configs")
 configs.add_argument("--gres", type=str, default="gpu:1", help=""
                      "By default gpu:1. To allocate more than one gpus, use "
                      "gpu:X, wher X is the number of gpus wanted")
-configs.add_argument("--time", type=float, default="00:01:00", help=""
+configs.add_argument("--time", type=st, default="00:01:00", help=""
                      "By default 00:01:00. The maximum permitted time for the "
                      "process to run in dd:hh:mm format. "
                      "When exceeded the job will be killed.")
