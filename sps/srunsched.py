@@ -88,8 +88,8 @@ def write_env(job_fullpath, env):
 
     # write env to env_fullpath
     with Lock(lock_file):
-        with open(env_fullpath, "w") as ifp:
-            env = json.dump(env, ifp)
+        with open(env_fullpath, "w") as ofp:
+            json.dump(env, ofp)
 
 
 # -----------------------------------------------------------------------------
@@ -175,14 +175,28 @@ def kill_job(job_fullpath):
 def check_job_valid(job_fullpath):
     """ TODO: Docstring
     """
+
     valid = True
 
-    # check if job is valid by simply reading it
+    # Check job file
     try:
         job_spec = read_job(job_fullpath)
         env = read_env(job_fullpath)
     except:
         valid = False
+
+    # Check interactive
+    if valid and job_spec["type"] == "salloc":
+        # Check if job submitter is stil there
+        if not psutil.pid_exists(int(job_spec["pid"])):
+            valid = False
+
+    # Remove job if not valid
+    if not valid:
+        # TODO: proper reporting
+        print("  -- {} is not a proper job!".format(
+            job_fullpath))
+        kill_job(job_fullpath)
 
     return valid
 
@@ -239,20 +253,34 @@ def collect_user_queue():
             # Ignore the ones that are not ending with job
             if not job_fullpath.endswith(".job"):
                 continue
-            try:
-                # Try parsing job as dictionary
-                if check_job_valid(job_fullpath):
-                    # Add parsed job
-                    new_jobs += [job_fullpath]
-                else:
-                    raise RuntimeError("")
-            except:
-                # TODO: throw error or delete job silently
-                print("{} is not a proper job!".format(
-                    job_fullpath))
-                remove_job(job_fullpath)
+            # Check and add only valid jobs
+            if check_job_valid(job_fullpath):
+                # Add parsed job
+                new_jobs += [job_fullpath]
 
     return new_jobs
+
+
+def read_quota():
+    """TODO: write"""
+
+    quota = {}
+    for dir_userqueue in list_sub_dir(dir_addqueue):
+        uname = dir_userqueue.split("/")[-1]
+        quota_file = dir_userqueue + ".quota"
+        quota[uname] = np.loadtxt(quota_file)
+
+    return quota
+
+
+def check_quota(usage, quota, job_fullpath):
+
+    job_spec = read_job(job_fullpath)
+    job_gpu = int(job_spec["num_gpu"])
+    user_gpu = usage[job_spec["user"]]
+    user_quota = quota[job_spec["user"]]
+
+    return user_gpu + job_gpu <= user_quota
 
 
 def get_running_pid_gpuid():
@@ -341,7 +369,7 @@ def check_gpu_jobs():
                 safe_kill_pid(pg[0])
 
 
-def get_job():
+def get_job(gpu_usage):
     """TODO: docstring
 
     Returns
@@ -352,6 +380,22 @@ def get_job():
         to run.
 
     """
+
+    # Read quota
+    quota = read_quota()
+
+    # Convert gpu usage into user-based
+    alloc = {}
+    for gpu in gpu_usage:
+        if len(gpu_usage[gpu]) > 0:
+            if gpu_usage[gpu] not in user_alloc:
+                alloc[gpu_usage[gpu]] = [gpu]
+            else:
+                alloc[gpu_usage[gpu]] += [gpu]
+    # Get user-based usage number
+    usage = {}
+    for user in alloc:
+        usage[user] = len(set(alloc[user]))
 
     # Get all jobs
     jobs = [os.path.join(dir_queue, j) for j in os.listdir(dir_queue) if
@@ -371,34 +415,41 @@ def get_job():
     if len(int_jobs) > 0:
         int_jobs = np.sort(int_jobs)
         for job in int_jobs:
-            # TODO: Check gpu usage and validity
-            return os.path.join(dir_queue, job)
+            # Check if job is still valid
+            if check_job_valid(job):
+                # Check quota
+                if check_quota(usage, quota, job):
+                    return os.path.join(dir_queue, job)
 
     # Now try to run batch job
     if len(bat_jobs) > 0:
         bat_jobs = np.sort(bat_jobs)
         for job in bat_jobs:
-            # TODO: Check gpu usage and validity
-            return os.path.join(dir_queue, job)
+            # Check if job is still valid
+            if check_job_valid(job):
+                # Check quota
+                if check_quota(usage, quota, job):
+                    return os.path.join(dir_queue, job)
 
     return None
 
 
-def get_free_gpus():
-    """ TODO: docstring
+def get_gpu_usage():
+    """TODO: docstring
 
 
     Returns
     -------
 
-    free_gpus: list of int
+    gpu_usage: dictionary
 
-        Returns the list of free GPUs
+        Returns the a dictionary where each key is gpu and element is a user
+        name that is currently using that gpu
+
     """
 
-    free_gpus = []              # list of integers
-
-    # Find the list of free GPUS.
+    # Dictionary to return
+    gpu_usage = {}
 
     # For all gpu directories
     dir_gpus = [os.path.join(dir_gpu, d) for d in os.listdir(dir_gpu)
@@ -408,6 +459,8 @@ def get_free_gpus():
     # Look at assigned jobs
     for dir_cur_gpu in dir_gpus:
         assigned = False
+        cur_gpu_id = int(dir_cur_gpu.split("/")[-1]) 
+        gpu_usage[cur_gpu_id] = []
         for job in os.listdir(dir_cur_gpu):
             job_fullpath = os.path.join(dir_cur_gpu, job)
             # Pass if not a regular file
@@ -415,17 +468,19 @@ def get_free_gpus():
                 continue
             if not job_fullpath.endswith(".job"):
                 continue
+            # Read job specs
+            job_spec = read_job(job_fullpath)
             # Mark assigned
-            print("  -- {} is not free, {} is there".format(
-                dir_cur_gpu, job))
-            assigned = True
-        if not assigned:
-            free_gpus += [int(dir_cur_gpu.split("/")[-1])]
+            print("  -- {} is not free, {}'s job is there".format(
+                cur_gpu_id, job_spec["user"]))
+            gpu_usage[cur_gpu_id] += [job_spec["user"]]
+        # Remove duplicates
+        gpu_usage[cur_gpu_id] = set(gpu_usage[cur_gpu_id])
 
-    return free_gpus
+    return gpu_usage
 
 
-def assign_job(job_fullpath, free_gpus):
+def assign_job(job_fullpath, gpu_usage):
     """ TODO: docstring
 
     Returns
@@ -445,6 +500,11 @@ def assign_job(job_fullpath, free_gpus):
     job_spec = read_job(job_fullpath)
 
     # Randomly permute GPU
+    free_gpus = []
+    for gpu in gpu_usage:
+        if len(gpu_usage[gpu]) == 0:
+            free_gpus += [gpu]
+
     free_gpus = np.random.permutation(free_gpus)
 
     # Check job requirement, and if it fits, copy job to the gpus
@@ -530,18 +590,18 @@ def main(args):
         print("* Checking if any process should be killed and killing if finished")
         check_gpu_jobs()
 
+        # Get resource udage
+        print("* Checking GPU availability")
+        gpus_usage = get_gpu_usage()
+
         # Select a job
         print("* Grabbing oldest job")
-        job_fullpath = get_job()
+        job_fullpath = get_job(gpu_usage)
         print("  -- Grabbed {}".format(job_fullpath))
-
-        # Check if there's a free GPU
-        print("* Checking GPU availability")
-        free_gpus = get_free_gpus()
 
         # Assign job to GPU by moving the job to the GPU
         print("* Assigning job to GPU")
-        job_fullpath, assigned_gpus = assign_job(job_fullpath, free_gpus)
+        job_fullpath, assigned_gpus = assign_job(job_fullpath, gpu_usage)
 
         # Run job as user
         print("* Running job")

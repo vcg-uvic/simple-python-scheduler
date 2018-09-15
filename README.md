@@ -51,6 +51,9 @@ Queue will be located at `/var/sps/queue`
 
 Add queue will be located at `/var/sps/addqueue/<user>`
 
+Quota for GPU will be located at `/var/sps/addqueue/<user>.quota`. Will only
+have effect when `/var/sps/addqueue/<user>` exists.
+
 Current job at GPU will be at `/var/sps/gpu/X`
 
 # Job file
