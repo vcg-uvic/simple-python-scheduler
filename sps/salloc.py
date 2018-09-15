@@ -234,10 +234,13 @@ def is_my_quota_valid(num_gpu):
 
     # Report current gpu usage
     usage = convert_to_user_usage(get_gpu_usage())
-    print("  -- I'm currently using {} GPUs".format(usage[user]))
+    num_used = 0
+    if user in usage:
+        num_used = usage[user]
+    print("  -- I'm currently using {} GPUs".format(num_used))
 
     # Report validity of this allocation
-    if usage[user] + num_gpu > quota[user]:
+    if num_used + num_gpu > quota[user]:
         print("  -- I cannot allocate {} more GPUs".format(num_gpu))
         return False
 
