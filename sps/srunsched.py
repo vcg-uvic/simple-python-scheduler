@@ -31,10 +31,10 @@ import sys
 import time
 
 import numpy as np
+import pynvml as N
 from flufl.lock import Lock
 
 import psutil
-import pynvml as N
 
 dir_sps = "/var/sps"
 dir_gpu = os.path.join(dir_sps, "gpu")
@@ -388,19 +388,7 @@ def get_job(gpu_usage):
     quota = read_quota()
 
     # Convert gpu usage into user-based
-    alloc = {}
-    for gpu in gpu_usage:
-        if len(gpu_usage[gpu]) > 0:
-            for cur_gpu in gpu_usage[gpu]:
-                if cur_gpu not in alloc:
-                    alloc[cur_gpu] = [gpu]
-                else:
-                    alloc[cur_gpu] += [gpu]
-    print(alloc)
-    # Get user-based usage number
-    usage = {}
-    for user in alloc:
-        usage[user] = len(set(alloc[user]))
+    usage = convert_to_user_usage(gpu_usage)
 
     # Get all jobs
     jobs = [os.path.join(dir_queue, j) for j in os.listdir(dir_queue) if
@@ -464,7 +452,7 @@ def get_gpu_usage():
     # Look at assigned jobs
     for dir_cur_gpu in dir_gpus:
         assigned = False
-        cur_gpu_id = int(dir_cur_gpu.split("/")[-1]) 
+        cur_gpu_id = int(dir_cur_gpu.split("/")[-1])
         gpu_usage[cur_gpu_id] = []
         for job in os.listdir(dir_cur_gpu):
             job_fullpath = os.path.join(dir_cur_gpu, job)
@@ -483,6 +471,25 @@ def get_gpu_usage():
         gpu_usage[cur_gpu_id] = set(gpu_usage[cur_gpu_id])
 
     return gpu_usage
+
+
+def convert_to_user_usage(gpu_usage):
+    """TODO: writeme"""
+
+    alloc = {}
+    for gpu in gpu_usage:
+        if len(gpu_usage[gpu]) > 0:
+            for cur_gpu in gpu_usage[gpu]:
+                if cur_gpu not in alloc:
+                    alloc[cur_gpu] = [gpu]
+                else:
+                    alloc[cur_gpu] += [gpu]
+    # Get user-based usage number
+    usage = {}
+    for user in alloc:
+        usage[user] = len(set(alloc[user]))
+
+    return usage
 
 
 def assign_job(job_fullpath, gpu_usage):

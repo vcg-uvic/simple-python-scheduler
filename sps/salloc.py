@@ -87,6 +87,7 @@ def print_usage():
 # -----------------------------------------------------------------------------
 # Access functions for jobs
 
+
 def read_job(job_fullpath):
     """ TODO: Docstring
     """
@@ -119,8 +120,122 @@ def write_env(job_fullpath, env):
         with open(env_fullpath, "w") as ofp:
             json.dump(env, ofp)
 
+
+# -----------------------------------------------------------------------------
+# For quota
+
+def read_quota():
+    """TODO: write"""
+
+    quota = {}
+    for dir_userqueue in list_sub_dir(dir_addqueue):
+        uname = dir_userqueue.split("/")[-1]
+        quota_file = dir_userqueue + ".quota"
+        quota[uname] = np.loadtxt(quota_file)
+
+    return quota
+
+
+def check_quota(usage, quota, job_fullpath):
+
+    job_spec = read_job(job_fullpath)
+    job_gpu = int(job_spec["num_gpu"])
+    if job_spec["user"] in usage:
+        user_gpu = usage[job_spec["user"]]
+    else:
+        user_gpu = 0
+    user_quota = quota[job_spec["user"]]
+
+    return user_gpu + job_gpu <= user_quota
+
+
+def get_gpu_usage():
+    """TODO: docstring
+
+
+    Returns
+    -------
+
+    gpu_usage: dictionary
+
+        Returns the a dictionary where each key is gpu and element is a user
+        name that is currently using that gpu
+
+    """
+
+    # Dictionary to return
+    gpu_usage = {}
+
+    # For all gpu directories
+    dir_gpus = [os.path.join(dir_gpu, d) for d in os.listdir(dir_gpu)
+                if os.path.isdir(os.path.join(dir_gpu, d))]
+    print("  -- Total of {} gpus found in {}. Checking".format(
+        len(dir_gpus), dir_gpu))
+    # Look at assigned jobs
+    for dir_cur_gpu in dir_gpus:
+        assigned = False
+        cur_gpu_id = int(dir_cur_gpu.split("/")[-1])
+        gpu_usage[cur_gpu_id] = []
+        for job in os.listdir(dir_cur_gpu):
+            job_fullpath = os.path.join(dir_cur_gpu, job)
+            # Pass if not a regular file
+            if not os.path.isfile(job_fullpath):
+                continue
+            if not job_fullpath.endswith(".job"):
+                continue
+            # Read job specs
+            job_spec = read_job(job_fullpath)
+            # Mark assigned
+            print("  -- {} is not free, {}'s job is there".format(
+                cur_gpu_id, job_spec["user"]))
+            gpu_usage[cur_gpu_id] += [job_spec["user"]]
+        # Remove duplicates
+        gpu_usage[cur_gpu_id] = set(gpu_usage[cur_gpu_id])
+
+    return gpu_usage
+
+
+def convert_to_user_usage(gpu_usage):
+    """TODO: writeme"""
+
+    alloc = {}
+    for gpu in gpu_usage:
+        if len(gpu_usage[gpu]) > 0:
+            for cur_gpu in gpu_usage[gpu]:
+                if cur_gpu not in alloc:
+                    alloc[cur_gpu] = [gpu]
+                else:
+                    alloc[cur_gpu] += [gpu]
+    # Get user-based usage number
+    usage = {}
+    for user in alloc:
+        usage[user] = len(set(alloc[user]))
+
+    return usage
+
+
 # -----------------------------------------------------------------------------
 # This script specific functions
+
+def is_my_quota_valid(num_gpu):
+
+    # Get Username
+    user = getpass.getuser()
+
+    # Report user quota
+    quota = read_quota()
+    print("  -- Allowed number of GPUs is {}".format(quota[user]))
+
+    # Report current gpu usage
+    usage = convert_to_user_usage(get_gpu_usage())
+    print("  -- I'm currently using {} GPUs".format(usage[user]))
+
+    # Report validity of this allocation
+    if usage + num_gpu > quota:
+        print("  -- I cannot allocate {} more GPUs".format(num_gpu))
+        return False
+
+    return True
 
 def add_interactive(num_gpu, num_hour):
     """TODO: docstring
@@ -160,7 +275,6 @@ def add_interactive(num_gpu, num_hour):
     # Write the env
     sub_env = os.environ.copy()
     write_env(job_file, sub_env)
-
 
 
 def get_assigned_gpus():
@@ -233,7 +347,7 @@ def wait_for_gpus(num_gpu):
         # print("  -- waiting: my pid is {}".format(os.getpid()))
 
         # Sleep 10 seconds
-        
+
         time.sleep(sleep_time)
 
         # Add number of seconds I waited. If more than `max_wait`, tell user to
@@ -242,7 +356,6 @@ def wait_for_gpus(num_gpu):
         if wait_time > max_wait:
             print("Maximum wait time reached! Please check queue!")
             exit(1)
-
 
     # Once job is allocated, return the GPU id in string
     gpu_str = ",".join([str(g) for g in gpu_ids])
@@ -254,6 +367,11 @@ def main(config):
 
     num_gpu = config.num_gpu
     num_hour = config.num_hour
+
+    # Check quota and availability
+    print("* Checking quota and availability")
+    if is_my_quota_valid(num_gpu):
+        print("* Quota is not valid, terminating.")
 
     # Add job to addqueue
     print("* Adding interactive job to queue.")
