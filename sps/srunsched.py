@@ -396,6 +396,7 @@ def get_job(gpu_usage):
                     alloc[cur_gpu] = [gpu]
                 else:
                     alloc[cur_gpu] += [gpu]
+    print(alloc)
     # Get user-based usage number
     usage = {}
     for user in alloc:
