@@ -391,10 +391,11 @@ def get_job(gpu_usage):
     alloc = {}
     for gpu in gpu_usage:
         if len(gpu_usage[gpu]) > 0:
-            if gpu_usage[gpu] not in alloc:
-                alloc[gpu_usage[gpu]] = [gpu]
-            else:
-                alloc[gpu_usage[gpu]] += [gpu]
+            for cur_gpu in gpu_usage[gpu]:
+                if cur_gpu not in alloc:
+                    alloc[gpu_usage[gpu]] = [gpu]
+                else:
+                    alloc[gpu_usage[gpu]] += [gpu]
     # Get user-based usage number
     usage = {}
     for user in alloc:
