@@ -380,6 +380,8 @@ def main(config):
     if is_my_quota_valid(num_gpu):
         print("* Quota is not valid, terminating.")
         exit(1)
+    else:
+        print("* Quota valid.")
 
     # Add job to addqueue
     print("* Adding interactive job to queue.")
