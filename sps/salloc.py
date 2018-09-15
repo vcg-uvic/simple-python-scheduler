@@ -249,7 +249,7 @@ def main(config):
     # Create a new rc file to folder
     new_rc_dir = os.path.expanduser("~/.spsrc")
     if not os.path.isdir(new_rc_dir):
-        if not os.path.exists(new_rc_dir):
+        if os.path.exists(new_rc_dir):
             os.remove(new_rc_dir)
     if not os.path.exists(new_rc_dir):
         os.makedirs(new_rc_dir)
