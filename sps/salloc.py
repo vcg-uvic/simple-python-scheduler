@@ -39,6 +39,9 @@ dir_addqueue = os.path.join(dir_sps, "addqueue")
 dir_queue = os.path.join(dir_sps, "queue")
 lock_file = os.path.join(dir_sps, "locks/lock")
 
+max_wait = 30                   # maximum wait time
+sleep_time = 2                  # maximum wait time
+
 
 # -----------------------------------------------------------------------------
 # Options and configurations
@@ -55,10 +58,12 @@ def add_argument_group(name):
 
 
 configs = add_argument_group("Configs")
-configs.add_argument("--num_gpu", type=int, default=1,
-                     help="Number of gpus to allocate.")
-configs.add_argument("--num_hour", type=float, default=1,
-                     help="Number of hours. When exceeded the job will be killed.")
+configs.add_argument("--gres", type=str, default="gpu:1", help=""
+                     "By default gpu:1. To allocate more than one gpus, use "
+                     "gpu:X, wher X is the number of gpus wanted")
+configs.add_argument("--num_hour", type=float, default=1, help=""
+                     "By default 1. Number of hours that the process should run "
+                     "at max. When exceeded the job will be killed.")
 
 
 def get_config():
@@ -209,16 +214,25 @@ def wait_for_gpus(num_gpu):
     gpu_ids = []
 
     # Check GPU folders and see if anything is allocated with my job request
+    wait_time = 0
     while True:
 
         gpu_ids = get_assigned_gpus()
         # print("Assigne gpus = {}".format(gpu_ids))
         if len(gpu_ids) == num_gpu:
             break
-        print("  -- waiting: my pid is {}".format(os.getpid()))
+        # print("  -- waiting: my pid is {}".format(os.getpid()))
 
         # Sleep 10 seconds
-        time.sleep(2)
+        
+        time.sleep(sleep_time)
+
+        # Add number of seconds I waited. If more than `max_wait`, tell user to
+        # check queue.
+        wait_time += sleep_time
+        if wait_time > max_wait:
+            raise RuntimeError("Maximum wait time reached! Please check queue!")
+
 
     # Once job is allocated, return the GPU id in string
     gpu_str = ",".join([str(g) for g in gpu_ids])
