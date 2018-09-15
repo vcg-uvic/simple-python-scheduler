@@ -124,6 +124,11 @@ def write_env(job_fullpath, env):
 # -----------------------------------------------------------------------------
 # For quota
 
+def list_sub_dir(d):
+    return [os.path.join(d, o) for o in os.listdir(d)
+            if os.path.isdir(os.path.join(d, o))]
+
+
 def read_quota():
     """TODO: write"""
 
@@ -236,6 +241,7 @@ def is_my_quota_valid(num_gpu):
         return False
 
     return True
+
 
 def add_interactive(num_gpu, num_hour):
     """TODO: docstring
