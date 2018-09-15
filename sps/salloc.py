@@ -237,7 +237,7 @@ def is_my_quota_valid(num_gpu):
     print("  -- I'm currently using {} GPUs".format(usage[user]))
 
     # Report validity of this allocation
-    if usage + num_gpu > quota:
+    if usage[user] + num_gpu > quota[user]:
         print("  -- I cannot allocate {} more GPUs".format(num_gpu))
         return False
 
