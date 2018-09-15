@@ -175,8 +175,8 @@ def get_gpu_usage():
     # For all gpu directories
     dir_gpus = [os.path.join(dir_gpu, d) for d in os.listdir(dir_gpu)
                 if os.path.isdir(os.path.join(dir_gpu, d))]
-    print("  -- Total of {} gpus found in {}. Checking".format(
-        len(dir_gpus), dir_gpu))
+    # print("  -- Total of {} gpus found in {}. Checking".format(
+    #     len(dir_gpus), dir_gpu))
     # Look at assigned jobs
     for dir_cur_gpu in dir_gpus:
         assigned = False
@@ -192,8 +192,8 @@ def get_gpu_usage():
             # Read job specs
             job_spec = read_job(job_fullpath)
             # Mark assigned
-            print("  -- {} is not free, {}'s job is there".format(
-                cur_gpu_id, job_spec["user"]))
+            # print("  -- {} is not free, {}'s job is there".format(
+            #     cur_gpu_id, job_spec["user"]))
             gpu_usage[cur_gpu_id] += [job_spec["user"]]
         # Remove duplicates
         gpu_usage[cur_gpu_id] = set(gpu_usage[cur_gpu_id])
@@ -379,6 +379,7 @@ def main(config):
     print("* Checking quota and availability")
     if is_my_quota_valid(num_gpu):
         print("* Quota is not valid, terminating.")
+        exit(1)
 
     # Add job to addqueue
     print("* Adding interactive job to queue.")
