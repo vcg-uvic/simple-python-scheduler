@@ -592,7 +592,7 @@ def main(args):
 
         # Get resource udage
         print("* Checking GPU availability")
-        gpus_usage = get_gpu_usage()
+        gpu_usage = get_gpu_usage()
 
         # Select a job
         print("* Grabbing oldest job")
