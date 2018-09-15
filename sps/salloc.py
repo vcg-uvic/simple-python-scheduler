@@ -31,6 +31,7 @@ import subprocess
 import sys
 import time
 
+import numpy as np
 from flufl.lock import Lock
 
 dir_sps = "/var/sps"
