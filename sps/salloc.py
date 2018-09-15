@@ -230,7 +230,10 @@ def is_my_quota_valid(num_gpu):
 
     # Report user quota
     quota = read_quota()
-    print("  -- Allowed number of GPUs is {}".format(quota[user]))
+    if user not in quota:
+        print("  -- No quota assigned!")
+        return False
+    print("  -- Allowed number of GPUs is {}".format(int(quota[user])))
 
     # Report current gpu usage
     usage = convert_to_user_usage(get_gpu_usage())
