@@ -273,7 +273,7 @@ def main(config):
         shutil.copy(rcfile, new_rcfile)
         # add export CUDA_VISIBLE_DEVICES at the end
         with open(new_rcfile, "a") as ofp:
-            ofp.write("\necho SOURCING MODIFIED\n")
+            # ofp.write("\necho SOURCING MODIFIED\n")
             ofp.write("\n\nexport CUDA_VISIBLE_DEVICES={}\n\n".format(
                 gpu_str))
             ofp.write("\n\nexport {}=\"(GPU={}) \"${}\n\n".format(
