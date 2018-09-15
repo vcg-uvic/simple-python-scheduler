@@ -277,7 +277,10 @@ def check_quota(usage, quota, job_fullpath):
 
     job_spec = read_job(job_fullpath)
     job_gpu = int(job_spec["num_gpu"])
-    user_gpu = usage[job_spec["user"]]
+    if job_spec["user"] in usage:
+        user_gpu = usage[job_spec["user"]]
+    else:
+        user_gpu = 0
     user_quota = quota[job_spec["user"]]
 
     return user_gpu + job_gpu <= user_quota
