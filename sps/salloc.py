@@ -39,7 +39,7 @@ dir_addqueue = os.path.join(dir_sps, "addqueue")
 dir_queue = os.path.join(dir_sps, "queue")
 lock_file = os.path.join(dir_sps, "locks/lock")
 
-max_wait = 30                   # maximum wait time
+max_wait = 10                   # maximum wait time
 sleep_time = 2                  # maximum wait time
 
 
@@ -240,7 +240,8 @@ def wait_for_gpus(num_gpu):
         # check queue.
         wait_time += sleep_time
         if wait_time > max_wait:
-            raise RuntimeError("Maximum wait time reached! Please check queue!")
+            print("Maximum wait time reached! Please check queue!")
+            exit(1)
 
 
     # Once job is allocated, return the GPU id in string
