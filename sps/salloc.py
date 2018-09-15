@@ -62,13 +62,22 @@ configs = add_argument_group("Configs")
 configs.add_argument("--gres", type=str, default="gpu:1", help=""
                      "By default gpu:1. To allocate more than one gpus, use "
                      "gpu:X, wher X is the number of gpus wanted")
-configs.add_argument("--num_hour", type=float, default=1, help=""
-                     "By default 1. Number of hours that the process should run "
-                     "at max. When exceeded the job will be killed.")
-
+configs.add_argument("--time", type=float, default="00:01:00", help=""
+                     "By default 00:01:00. The maximum permitted time for the "
+                     "process to run in dd:hh:mm format. "
+                     "When exceeded the job will be killed.")
 
 def get_config():
     config, unparsed = parser.parse_known_args()
+
+    # parse time
+    time_list = config.time.split(":")
+    in_hours_list = [24, 1, 1/60]
+    in_hours_list = in_hours_list[::-1][:len(time_list)]
+    num_hour = 0.0
+    for time, in_hours in zip(time_list[::-1], in_hours_list):
+        num_hour += float(time) * float(in_hours)
+    setattr(config, "num_hour", num_hour)
 
     # parse gres
     gres_list = config.gres.split(",")
