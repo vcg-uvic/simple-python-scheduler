@@ -71,7 +71,42 @@ def print_usage():
     parser.print_usage()
 
 # -----------------------------------------------------------------------------
+# Access functions for jobs
 
+def read_job(job_fullpath):
+    """ TODO: Docstring
+    """
+
+    # Parse the contents of the job
+    with Lock(lock_file):
+        with open(job_fullpath, "r") as ifp:
+            job_spec = json.load(ifp)
+
+    return job_spec
+
+
+def write_job(job_fullpath, job_spec):
+    """ TODO: Docstring
+    """
+
+    # Write the contents to a job
+    with Lock(lock_file):
+        with open(job_fullpath, "w") as ofp:
+            json.dump(job_spec, ofp)
+
+
+def write_env(job_fullpath, env):
+    """TODO: write"""
+
+    env_fullpath = job_fullpath.replace(".job", ".env")
+
+    # write env to env_fullpath
+    with Lock(lock_file):
+        with open(env_fullpath, "w") as ofp:
+            json.dump(env, ofp)
+
+# -----------------------------------------------------------------------------
+# This script specific functions
 
 def add_interactive(num_gpu, num_hour):
     """TODO: docstring
@@ -112,38 +147,6 @@ def add_interactive(num_gpu, num_hour):
     sub_env = os.environ.copy()
     write_env(job_file, sub_env)
 
-
-def read_job(job_fullpath):
-    """ TODO: Docstring
-    """
-
-    # Parse the contents of the job
-    with Lock(lock_file):
-        with open(job_fullpath, "r") as ifp:
-            job_spec = json.load(ifp)
-
-    return job_spec
-
-
-def write_job(job_fullpath, job_spec):
-    """ TODO: Docstring
-    """
-
-    # Write the contents to a job
-    with Lock(lock_file):
-        with open(job_fullpath, "w") as ofp:
-            json.dump(job_spec, ofp)
-
-
-def write_env(job_fullpath, env):
-    """TODO: write"""
-
-    env_fullpath = job_fullpath.replace(".job", ".env")
-
-    # write env to env_fullpath
-    with Lock(lock_file):
-        with open(env_fullpath, "w") as ofp:
-            json.dump(env, ofp)
 
 
 def get_assigned_gpus():

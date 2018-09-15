@@ -43,39 +43,57 @@ dir_queue = os.path.join(dir_sps, "queue")
 lock_file = os.path.join(dir_sps, "locks/lock")
 
 
-def list_sub_dir(d):
-    return [os.path.join(d, o) for o in os.listdir(d)
-            if os.path.isdir(os.path.join(d, o))]
+# -----------------------------------------------------------------------------
+# Access functions for jobs
 
-
-def collect_user_queue():
+def read_job(job_fullpath):
     """ TODO: Docstring
     """
-    new_jobs = []
-    for dir_userqueue in list_sub_dir(dir_addqueue):
-        for job in os.listdir(dir_userqueue):
-            job_fullpath = os.path.join(dir_userqueue, job)
-            # Ignore the ones that are not files
-            if not os.path.isfile(job_fullpath):
-                continue
-            # Ignore the ones that are not ending with job
-            if not job_fullpath.endswith(".job"):
-                continue
-            try:
-                # Try parsing job as dictionary
-                if check_job_valid(job_fullpath):
-                    # Add parsed job
-                    new_jobs += [job_fullpath]
-                else:
-                    raise RuntimeError("")
-            except:
-                # TODO: throw error or delete job silently
-                print("{} is not a proper job!".format(
-                    job_fullpath))
-                remove_job(job_fullpath)
 
-    return new_jobs
+    # Parse the contents of the job
+    with Lock(lock_file):
+        with open(job_fullpath, "r") as ifp:
+            job_spec = json.load(ifp)
 
+    return job_spec
+
+
+def write_job(job_fullpath, job_spec):
+    """ TODO: Docstring
+    """
+
+    # Write the contents to a job
+    with Lock(lock_file):
+        with open(job_fullpath, "w") as ofp:
+            json.dump(job_spec, ofp)
+
+
+def read_env(job_fullpath):
+    """TODO: write"""
+
+    env_fullpath = job_fullpath.replace(".job", ".env")
+
+    # read env from env_fullpath
+    with Lock(lock_file):
+        with open(env_fullpath, "r") as ifp:
+            env = json.load(ifp)
+
+    return env
+
+
+def write_env(job_fullpath, env):
+    """TODO: write"""
+
+    env_fullpath = job_fullpath.replace(".job", ".env")
+
+    # write env to env_fullpath
+    with Lock(lock_file):
+        with open(env_fullpath, "w") as ifp:
+            env = json.dump(env, ifp)
+
+
+# -----------------------------------------------------------------------------
+# Job specific fuctions
 
 def copy_job(job_fullpath, dst):
     """TODO: Docstring
@@ -138,7 +156,6 @@ def safe_kill_pid(pid):
         except psutil.NoSuchProcess:
             print("        -- Error in killing job, ignoring")
             pass
-    # os.kill(int(job_spec["pid"]), signal.SIGTERM)
 
 
 def kill_job(job_fullpath):
@@ -188,6 +205,54 @@ def check_job_finished(job_fullpath):
 
     # otherwise return false
     return False
+
+
+def remove_job(job_fullpath):
+    """ TODO: writeme
+    """
+
+    with Lock(lock_file):
+        if os.path.exists(job_fullpath):
+            os.remove(job_fullpath)
+        if os.path.exists(job_fullpath.replace(".job", ".env")):
+            os.remove(job_fullpath.replace(".job", ".env"))
+
+
+# -----------------------------------------------------------------------------
+# This script specific functions
+
+def list_sub_dir(d):
+    return [os.path.join(d, o) for o in os.listdir(d)
+            if os.path.isdir(os.path.join(d, o))]
+
+
+def collect_user_queue():
+    """ TODO: Docstring
+    """
+    new_jobs = []
+    for dir_userqueue in list_sub_dir(dir_addqueue):
+        for job in os.listdir(dir_userqueue):
+            job_fullpath = os.path.join(dir_userqueue, job)
+            # Ignore the ones that are not files
+            if not os.path.isfile(job_fullpath):
+                continue
+            # Ignore the ones that are not ending with job
+            if not job_fullpath.endswith(".job"):
+                continue
+            try:
+                # Try parsing job as dictionary
+                if check_job_valid(job_fullpath):
+                    # Add parsed job
+                    new_jobs += [job_fullpath]
+                else:
+                    raise RuntimeError("")
+            except:
+                # TODO: throw error or delete job silently
+                print("{} is not a proper job!".format(
+                    job_fullpath))
+                remove_job(job_fullpath)
+
+    return new_jobs
 
 
 def get_running_pid_gpuid():
@@ -416,63 +481,6 @@ def demote_to(user):
         print("Process demoted to user {}".format(user))
 
     return setids
-
-
-def read_job(job_fullpath):
-    """ TODO: Docstring
-    """
-
-    # Parse the contents of the job
-    with Lock(lock_file):
-        with open(job_fullpath, "r") as ifp:
-            job_spec = json.load(ifp)
-
-    return job_spec
-
-
-def write_job(job_fullpath, job_spec):
-    """ TODO: Docstring
-    """
-
-    # Write the contents to a job
-    with Lock(lock_file):
-        with open(job_fullpath, "w") as ofp:
-            json.dump(job_spec, ofp)
-
-
-def remove_job(job_fullpath):
-    """ TODO: writeme
-    """
-
-    with Lock(lock_file):
-        if os.path.exists(job_fullpath):
-            os.remove(job_fullpath)
-        if os.path.exists(job_fullpath.replace(".job", ".env")):
-            os.remove(job_fullpath.replace(".job", ".env"))
-
-
-def read_env(job_fullpath):
-    """TODO: write"""
-
-    env_fullpath = job_fullpath.replace(".job", ".env")
-
-    # read env from env_fullpath
-    with Lock(lock_file):
-        with open(env_fullpath, "r") as ifp:
-            env = json.load(ifp)
-
-    return env
-
-
-def write_env(job_fullpath, env):
-    """TODO: write"""
-
-    env_fullpath = job_fullpath.replace(".job", ".env")
-
-    # write env to env_fullpath
-    with Lock(lock_file):
-        with open(env_fullpath, "w") as ifp:
-            env = json.dump(env, ifp)
 
 
 def run_job(job_fullpath, assigned_gpus):
