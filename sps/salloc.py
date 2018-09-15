@@ -69,6 +69,15 @@ configs.add_argument("--num_hour", type=float, default=1, help=""
 def get_config():
     config, unparsed = parser.parse_known_args()
 
+    # parse gres
+    gres_list = config.gres.split(",")
+    for gres in gres_list:
+        gres = gres.split(":")
+        if gres[0] == "gpu":
+            setattr(config, "num_gpu", int(gres[1]))
+        else:
+            raise RuntimeError("Unknown!")
+
     return config, unparsed
 
 
