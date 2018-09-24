@@ -146,16 +146,21 @@ def safe_kill_pid(pid):
     """ TODO: Writeme
     """
 
-    current_process = psutil.Process(pid)
-    procs = current_process.children(recursive=True)
-    current_process.terminate()
-    gone, alive = psutil.wait_procs(procs, timeout=3)
-    for p in alive:
-        try:
-            p.kill()
-        except psutil.NoSuchProcess:
-            print("        -- Error in killing job, ignoring")
-            pass
+    # Make sure only do this when the process exists
+    try:
+        current_process = psutil.Process(pid)
+        procs = current_process.children(recursive=True)
+        current_process.terminate()
+        gone, alive = psutil.wait_procs(procs, timeout=3)
+        for p in alive:
+            try:
+                p.kill()
+            except psutil.NoSuchProcess:
+                print("        -- Error in killing job, ignoring")
+                pass
+    except psutil.NoSuchProcess:
+        print("        -- Error in killing job, ignoring")
+        pass
 
 
 def kill_job(job_fullpath):
@@ -165,8 +170,7 @@ def kill_job(job_fullpath):
     # kill the job
     job_spec = read_job(job_fullpath)
     # Kill 9 for now. No graceful exit. Don't trust the user.
-    if psutil.pid_exists(int(job_spec["pid"])):
-        safe_kill_pid(int(job_spec["pid"]))
+    safe_kill_pid(int(job_spec["pid"]))
 
     # delete job file
     remove_job(job_fullpath)
@@ -347,14 +351,20 @@ def check_gpu_jobs():
     # Expand to all child processes
     valid_pid_for_gpu = {}
     for pg in pid_gpuid:
-        # Put self in
-        if pg[1] not in valid_pid_for_gpu:
-            valid_pid_for_gpu[pg[1]] = set([])
+        # Safety measure to skip non-existant pids
+        try:
+            # Put self in
+            if pg[1] not in valid_pid_for_gpu:
+                valid_pid_for_gpu[pg[1]] = set([])
 
-        current_process = psutil.Process(pg[0])
-        procs = current_process.children(recursive=True)
-        for p in procs:
-            valid_pid_for_gpu[pg[1]].add(p.pid)
+            current_process = psutil.Process(pg[0])
+            procs = current_process.children(recursive=True)
+            for p in procs:
+                valid_pid_for_gpu[pg[1]].add(p.pid)
+        except psutil.NoSuchProcess:
+            print("  -- Process {} dies before being processed. "
+                  "Skipping...".format(pg[0]))
+            pass
 
     # Kill all intruders
     running_pid_gpuid = get_running_pid_gpuid()
