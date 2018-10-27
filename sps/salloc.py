@@ -66,6 +66,9 @@ configs.add_argument("--time", type=str, default="00:01:00", help=""
                      "By default 00:01:00. The maximum permitted time for the "
                      "process to run in dd:hh:mm format. "
                      "When exceeded the job will be killed.")
+configs.add_argument("--pid", type=int, default=os.getpid(), help=""
+                     "By default pid is salloc pid. "
+                     "You can specify pid of a docker container.")
 
 def get_config():
     config, unparsed = parser.parse_known_args()
@@ -259,7 +262,7 @@ def is_my_quota_valid(num_gpu):
     return True
 
 
-def add_interactive(num_gpu, num_hour):
+def add_interactive(num_gpu, num_hour, pid):
     """TODO: docstring
     """
 
@@ -267,7 +270,7 @@ def add_interactive(num_gpu, num_hour):
     uname = getpass.getuser()
 
     # Get PID
-    pid = os.getpid()
+    # pid = os.getpid()
 
     # Check user queue directory
     dir_userqueue = os.path.join(dir_addqueue, uname)
@@ -299,7 +302,7 @@ def add_interactive(num_gpu, num_hour):
     write_env(job_file, sub_env)
 
 
-def get_assigned_gpus():
+def get_assigned_gpus(pid):
     """ TODO: Docstring
 
     Returns
@@ -314,7 +317,7 @@ def get_assigned_gpus():
     uname = getpass.getuser()
 
     # Get PID
-    pid = os.getpid()
+    # pid = os.getpid()
 
     # For all gpu directories
     dir_gpus = [os.path.join(dir_gpu, d) for d in os.listdir(dir_gpu)
@@ -345,7 +348,7 @@ def get_assigned_gpus():
     return assigned_gpus
 
 
-def wait_for_gpus(num_gpu):
+def wait_for_gpus(num_gpu, pid):
     """TODO: docstring
 
     Returns
@@ -362,7 +365,7 @@ def wait_for_gpus(num_gpu):
     wait_time = 0
     while True:
 
-        gpu_ids = get_assigned_gpus()
+        gpu_ids = get_assigned_gpus(pid)
         # print("Assigne gpus = {}".format(gpu_ids))
         if len(gpu_ids) == num_gpu:
             break
@@ -389,6 +392,7 @@ def main(config):
 
     num_gpu = config.num_gpu
     num_hour = config.num_hour
+    pid = config.pid
 
     # Check quota and availability
     print("* Checking quota and availability")
@@ -400,11 +404,11 @@ def main(config):
 
     # Add job to addqueue
     print("* Adding interactive job to queue.")
-    add_interactive(num_gpu, num_hour)
+    add_interactive(num_gpu, num_hour, pid)
 
     # Wait until assigned
     print("* Waiting for an available GPU(s)...")
-    gpu_str = wait_for_gpus(num_gpu)
+    gpu_str = wait_for_gpus(num_gpu, pid)
     print("* GPU(s) with ID={} allocated.".format(gpu_str))
 
     # Run a sub-process with correct GPU exported
