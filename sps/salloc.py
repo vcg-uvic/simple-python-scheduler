@@ -279,8 +279,9 @@ def add_interactive(num_gpu, num_hour, pid):
 
     # Add an interactive job
     cur_time = time.time()
+    cur_time_read = time.ctime().replace(" ", "-")
     job_name = "{}-{}-{}-{}.job".format(
-        cur_time, uname, "salloc", pid
+        cur_time_read, uname, "salloc", pid
     )
     job_file = os.path.join(dir_userqueue, job_name)
     job_spec = {
