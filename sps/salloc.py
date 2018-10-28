@@ -120,7 +120,7 @@ def write_job(job_fullpath, job_spec):
     # Write the contents to a job
     with Lock(lock_file):
         with open(job_fullpath, "w") as ofp:
-            json.dump(job_spec, ofp)
+            json.dump(job_spec, ofp, sort_keys=True)
 
 
 def write_env(job_fullpath, env):
@@ -131,7 +131,7 @@ def write_env(job_fullpath, env):
     # write env to env_fullpath
     with Lock(lock_file):
         with open(env_fullpath, "w") as ofp:
-            json.dump(env, ofp)
+            json.dump(env, ofp, sort_keys=True)
 
 
 # -----------------------------------------------------------------------------
