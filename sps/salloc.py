@@ -34,9 +34,6 @@ import time
 import numpy as np
 from flufl.lock import Lock
 
-#import global variables
-from config_file import dir_sps, dir_gpu, dir_addqueue, dir_queue, lock_file, max_wait, sleep_time
-
 # dir_sps = "/var/sps"
 # dir_gpu = os.path.join(dir_sps, "gpu")
 # dir_addqueue = os.path.join(dir_sps, "addqueue")
@@ -474,6 +471,10 @@ if __name__ == "__main__":
     # Parse configuration
     config, unparsed = get_config()
     # If we have unparsed arguments, print usage and exit
+
+    #import global variables
+    from config_file import dir_sps, dir_gpu, dir_addqueue, dir_queue, lock_file, max_wait, sleep_time
+
     if len(unparsed) > 0:
         print_usage()
         exit(1)
