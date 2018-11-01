@@ -34,14 +34,17 @@ import time
 import numpy as np
 from flufl.lock import Lock
 
-dir_sps = "/var/sps"
-dir_gpu = os.path.join(dir_sps, "gpu")
-dir_addqueue = os.path.join(dir_sps, "addqueue")
-dir_queue = os.path.join(dir_sps, "queue")
-lock_file = os.path.join(dir_sps, "locks/lock")
+#import global variables
+from config_file import dir_sps, dir_gpu, dir_addqueue, dir_queue, lock_file, max_wait, sleep_time
 
-max_wait = 10                   # maximum wait time
-sleep_time = 2                  # maximum wait time
+# dir_sps = "/var/sps"
+# dir_gpu = os.path.join(dir_sps, "gpu")
+# dir_addqueue = os.path.join(dir_sps, "addqueue")
+# dir_queue = os.path.join(dir_sps, "queue")
+# lock_file = os.path.join(dir_sps, "locks/lock")
+
+# max_wait = 10                   # maximum wait time
+# sleep_time = 2                  # maximum wait time
 
 
 # -----------------------------------------------------------------------------
