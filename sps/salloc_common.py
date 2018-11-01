@@ -30,7 +30,8 @@ import shutil
 import subprocess
 import sys
 import time
-
+import random
+import string
 import numpy as np
 from flufl.lock import Lock
 
@@ -43,6 +44,22 @@ lock_file = os.path.join(dir_sps, "locks/lock")
 max_wait = 10                   # maximum wait time
 sleep_time = 2                  # maximum wait time
 
+# -----------------------------------------------------------------------------
+# Misc
+
+def random_str(N=10):
+    return ''.join(random.choices(string.ascii_lowercase + string.digits, k=N))
+
+def get_username():
+    return getpass.getuser()
+
+def get_user_homedir():
+    return '/home/' + getpass.getuser()
+
+def check_own(dir_path):
+    stat_info = os.stat(dir_path)
+    uid = stat_info.st_uid
+    return uid == os.getuid()
 
 # -----------------------------------------------------------------------------
 # Access functions for jobs
