@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-# salloc.py ---
+# salloc_common.py ---
 #
-# Filename: salloc.py
+# Filename: salloc_common.py
 # Description:
 # Author: Kwang Moo Yi
 # Maintainer:
@@ -16,7 +16,7 @@
 #
 
 # Change Log:
-#
+# split salloc.py to two files: salloc_common.py and salloc.py
 #
 #
 
@@ -43,59 +43,6 @@ lock_file = os.path.join(dir_sps, "locks/lock")
 max_wait = 10                   # maximum wait time
 sleep_time = 2                  # maximum wait time
 
-
-# -----------------------------------------------------------------------------
-# Options and configurations
-
-parser = argparse.ArgumentParser()
-
-arg_lists = []
-
-
-def add_argument_group(name):
-    arg = parser.add_argument_group(name)
-    arg_lists.append(arg)
-    return arg
-
-
-configs = add_argument_group("Configs")
-configs.add_argument("--gres", type=str, default="gpu:1", help=""
-                     "By default gpu:1. To allocate more than one gpus, use "
-                     "gpu:X, wher X is the number of gpus wanted")
-configs.add_argument("--time", type=str, default="00:01:00", help=""
-                     "By default 00:01:00. The maximum permitted time for the "
-                     "process to run in dd:hh:mm format. "
-                     "When exceeded the job will be killed.")
-configs.add_argument("--pid", type=int, default=os.getpid(), help=""
-                     "By default pid is salloc pid. "
-                     "You can specify pid of a docker container.")
-
-def get_config():
-    config, unparsed = parser.parse_known_args()
-
-    # parse time
-    time_list = config.time.split(":")
-    in_hours_list = [24, 1, 1/60]
-    in_hours_list = in_hours_list[::-1][:len(time_list)]
-    num_hour = 0.0
-    for time, in_hours in zip(time_list[::-1], in_hours_list):
-        num_hour += float(time) * float(in_hours)
-    setattr(config, "num_hour", num_hour)
-
-    # parse gres
-    gres_list = config.gres.split(",")
-    for gres in gres_list:
-        gres = gres.split(":")
-        if gres[0] == "gpu":
-            setattr(config, "num_gpu", int(gres[1]))
-        else:
-            raise RuntimeError("Unknown!")
-
-    return config, unparsed
-
-
-def print_usage():
-    parser.print_usage()
 
 # -----------------------------------------------------------------------------
 # Access functions for jobs
