@@ -173,6 +173,11 @@ def main(config):
 
     os.system("docker attach "+container_name)
 
+    # Print message
+    print("-----------------------------------------------------------------------")
+    print("GPU(s) with ID={} now released.".format(gpu_str))
+    print("-----------------------------------------------------------------------")
+
     exit(0)
 
 
