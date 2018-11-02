@@ -16,7 +16,7 @@
 #
 
 # Change Log:
-# split salloc.py to two files: salloc_common.py and salloc.py
+# salloc+docker container
 #
 #
 
