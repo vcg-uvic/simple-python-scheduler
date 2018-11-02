@@ -168,7 +168,7 @@ def main(config):
 
     # Print message
     print("-----------------------------------------------------------------------")
-    print('Run: export NVIDIA_VISIBLE_DEVICES='+gpu_str)
+    print('Run: export NVIDIA_VISIBLE_DEVICES='+gpu_str+' && export NVIDIA_VISIBLE_DEVICES='+gpu_str)
     print("-----------------------------------------------------------------------")
 
     os.system("docker attach "+container_name)
