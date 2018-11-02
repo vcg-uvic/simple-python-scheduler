@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-# salloc.py ---
+# dockersalloc.py ---
 #
-# Filename: salloc.py
+# Filename: dockersalloc.py
 # Description:
 # Author: Kwang Moo Yi
 # Maintainer:
