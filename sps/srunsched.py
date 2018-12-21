@@ -501,6 +501,7 @@ def convert_to_user_usage(gpu_usage):
 
 def get_heat_realtime(free_gpus):
     free_gpus_temp = []
+    N.nvmlInit()
     for index in free_gpus:
         handle = N.nvmlDeviceGetHandleByIndex(index)
         try:
