@@ -506,7 +506,7 @@ def get_heat_realtime(free_gpus):
         try:
             temperature = float(N.nvmlDeviceGetTemperature(handle, N.NVML_TEMPERATURE_GPU))
         except N.NVMLError:
-            temperature = None  # Not supported
+            temperature = float('inf')
         free_gpus_temp += [temperature]
     return free_gpus_temp
 
