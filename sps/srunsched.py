@@ -517,7 +517,6 @@ def sort_free_gpus(free_gpus):
         free_gpus {[type]} -- a list, each element is the index of the gpu(int).
     '''
     heat = get_heat_realtime(free_gpus)
-    heat = heat[free_gpus]
     heat, free_gpus = zip(*sorted(zip(heat, free_gpus)))
     return free_gpus
 
