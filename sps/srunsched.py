@@ -157,10 +157,8 @@ def safe_kill_pid(pid):
                 p.kill()
             except psutil.NoSuchProcess:
                 print("        -- Error in killing job, ignoring")
-                pass
     except psutil.NoSuchProcess:
         print("        -- Error in killing job, ignoring")
-        pass
 
 
 def kill_job(job_fullpath):
@@ -501,6 +499,27 @@ def convert_to_user_usage(gpu_usage):
 
     return usage
 
+def get_heat_realtime(free_gpus):
+    free_gpus_temp = []
+    for index in free_gpus:
+        handle = N.nvmlDeviceGetHandleByIndex(index)
+        try:
+            temperature = float(N.nvmlDeviceGetTemperature(handle, N.NVML_TEMPERATURE_GPU))
+        except N.NVMLError:
+            temperature = None  # Not supported
+        free_gpus_temp += [temperature]
+    return free_gpus_temp
+
+def sort_free_gpus(free_gpus):
+    '''sort the gpu base on temprature
+    
+    Arguments:
+        free_gpus {[type]} -- a list, each element is the index of the gpu(int).
+    '''
+    heat = get_heat_realtime(free_gpus)
+    heat = heat[free_gpus]
+    heat, free_gpus = zip(*sorted(zip(heat, free_gpus)))
+    return free_gpus
 
 def assign_job(job_fullpath, gpu_usage):
     """ TODO: docstring
@@ -527,7 +546,8 @@ def assign_job(job_fullpath, gpu_usage):
         if len(gpu_usage[gpu]) == 0:
             free_gpus += [gpu]
 
-    free_gpus = np.random.permutation(free_gpus)
+    free_gpus = sort_free_gpus(free_gpus)
+    #free_gpus = np.random.permutation(free_gpus)
 
     # Check job requirement, and if it fits, copy job to the gpus
     num_gpu = int(job_spec["num_gpu"])
