@@ -517,8 +517,13 @@ def sort_free_gpus(free_gpus):
     Arguments:
         free_gpus {[type]} -- a list, each element is the index of the gpu(int).
     '''
+    if free_gpus == []:
+        return free_gpus
     heat = get_heat_realtime(free_gpus)
-    heat, free_gpus = zip(*sorted(zip(heat, free_gpus)))
+    try:
+        heat, free_gpus = zip(*sorted(zip(heat, free_gpus)))
+    except ValueError:
+        print('no free gpus')
     return free_gpus
 
 def assign_job(job_fullpath, gpu_usage):
