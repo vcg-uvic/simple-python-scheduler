@@ -270,7 +270,10 @@ def read_quota():
     for dir_userqueue in list_sub_dir(dir_addqueue):
         uname = dir_userqueue.split("/")[-1]
         quota_file = dir_userqueue + ".quota"
-        quota[uname] = np.loadtxt(quota_file)
+        try:
+            quota[uname] = np.loadtxt(quota_file)
+        except:
+            print('cannot find quota file')
 
     return quota
 
