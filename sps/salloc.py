@@ -65,12 +65,15 @@ def get_config():
     config, unparsed = parser.parse_known_args()
 
     # parse time
-    time_list = config.time.split(":")
-    in_hours_list = [24, 1, 1/60]
-    in_hours_list = in_hours_list[::-1][:len(time_list)]
-    num_hour = 0.0
-    for time, in_hours in zip(time_list[::-1], in_hours_list):
-        num_hour += float(time) * float(in_hours)
+    if config.time = 'forever':
+        num_hour = 356.0 * 24.0
+    else:
+        time_list = config.time.split(":")
+        in_hours_list = [24, 1, 1/60]
+        in_hours_list = in_hours_list[::-1][:len(time_list)]
+        num_hour = 0.0
+        for time, in_hours in zip(time_list[::-1], in_hours_list):
+            num_hour += float(time) * float(in_hours)
     setattr(config, "num_hour", num_hour)
 
     # parse gres
