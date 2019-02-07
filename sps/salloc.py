@@ -65,7 +65,7 @@ def get_config():
     config, unparsed = parser.parse_known_args()
 
     # parse time
-    if config.time = 'forever':
+    if config.time == 'forever' or config.time == 'iambaptiste':
         num_hour = 356.0 * 24.0
     else:
         time_list = config.time.split(":")
